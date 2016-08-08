@@ -1,0 +1,6 @@
+/bin/
+/vendor
+/build
+/composer.lock
+phpunit.xml
+studio.json
