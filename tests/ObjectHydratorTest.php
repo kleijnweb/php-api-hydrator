@@ -150,11 +150,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
                 ]
             ];
         }
-        /** @var Pet $pet */
-        $s = microtime(true);
         $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
-        var_dump(microtime(true) - $s);
-
     }
 
     /**
