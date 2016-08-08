@@ -16,18 +16,18 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 interface Hydrator
 {
     /**
-     * @param mixed        $data
+     * @param mixed  $data
      * @param Schema $schema
      *
-     * @return object|array
+     * @return mixed
      */
     public function hydrate($data, Schema $schema);
 
     /**
-     * @param mixed        $data
+     * @param mixed  $data
      * @param Schema $schema
      *
-     * @return \stdClass|array
+     * @return mixed
      */
     public function dehydrate($data, Schema $schema);
 }

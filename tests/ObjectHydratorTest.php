@@ -56,26 +56,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
      */
     public function canHydratePet()
     {
-        $tagSchema = new ObjectSchema((object)[], (object)[
-            'name' => new ScalarSchema((object)['type' => 'string'])
-        ]);
-        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
-        $categorySchema = new ObjectSchema((object)[]);
-        $categorySchema->setComplexType(new ComplexType('Category', $categorySchema, $categorySchema));
-        $petSchema = new ObjectSchema(
-            (object)[],
-            (object)[
-                'id'       => new ScalarSchema((object)['type' => 'integer']),
-                'price'    => new ScalarSchema((object)['type' => 'number']),
-                'category' => $categorySchema,
-                'tags'     => new ArraySchema((object)[], $tagSchema),
-                'rating'   => new ObjectSchema((object)[], (object)[
-                    'value'   => new ScalarSchema((object)['type' => 'number']),
-                    'created' => new ScalarSchema((object)['type' => 'string', 'format' => 'date'])
-                ])
-            ]
-        );
-        $petSchema->setComplexType(new ComplexType('Pet', $petSchema));
+        $petSchema = $this->createFullPetSchema();
 
         $input = (object)[
             'id'        => '1',
@@ -136,6 +117,49 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function canHandleLargeArray()
+    {
+        $size = 10000;
+        $this->dateTimeSerializer
+            ->expects($this->any())
+            ->method('deserialize')
+            ->willReturnCallback(function ($value) {
+                return new\DateTime($value);
+            });
+
+        $input = [];
+
+        for ($i = 0; $i < $size; ++$i) {
+            $input[] = (object)[
+                'id'        => '1',
+                'name'      => 'Fido',
+                'status'    => 'single',
+                'x'         => 'y',
+                'photoUrls' => ['/a', '/b'],
+                'price'     => '100.25',
+                'category'  => (object)[
+                    'name' => 'Shepherd'
+                ],
+                'tags'      => [
+                    (object)['name' => 1],
+                    (object)['name' => 2],
+                ],
+                'rating'    => (object)[
+                    'value'   => '10',
+                    'created' => '2016-01-01'
+                ]
+            ];
+        }
+        /** @var Pet $pet */
+        $s = microtime(true);
+        $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
+        var_dump(microtime(true) - $s);
+
+    }
+
+    /**
+     * @test
+     */
     public function willThrowExceptionIfTryingToHydrateInt64On32BitOs()
     {
         $this->setExpectedException(UnsupportedException::class);
@@ -145,5 +169,34 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         /** @var DateTimeSerializer $dateTimeSerializer */
         $hydrator = new ObjectHydrator($this->classNameResolver, $dateTimeSerializer = $this->dateTimeSerializer, true);
         $hydrator->hydrate(['id' => 1], $petSchema);
+    }
+
+    /**
+     * @return ObjectSchema
+     */
+    private function createFullPetSchema(): ObjectSchema
+    {
+        $tagSchema = new ObjectSchema((object)[], (object)[
+            'name' => new ScalarSchema((object)['type' => 'string'])
+        ]);
+        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
+        $categorySchema = new ObjectSchema((object)[]);
+        $categorySchema->setComplexType(new ComplexType('Category', $categorySchema, $categorySchema));
+        $petSchema = new ObjectSchema(
+            (object)[],
+            (object)[
+                'id'       => new ScalarSchema((object)['type' => 'integer']),
+                'price'    => new ScalarSchema((object)['type' => 'number']),
+                'category' => $categorySchema,
+                'tags'     => new ArraySchema((object)[], $tagSchema),
+                'rating'   => new ObjectSchema((object)[], (object)[
+                    'value'   => new ScalarSchema((object)['type' => 'number']),
+                    'created' => new ScalarSchema((object)['type' => 'string', 'format' => 'date'])
+                ])
+            ]
+        );
+        $petSchema->setComplexType(new ComplexType('Pet', $petSchema));
+
+        return $petSchema;
     }
 }
