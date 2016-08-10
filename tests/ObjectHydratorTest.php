@@ -9,6 +9,7 @@
 namespace KleijnWeb\PhpApi\Hydrator\Tests;
 
 use KleijnWeb\PhpApi\Descriptions\Description\ComplexType;
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
@@ -54,7 +55,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function canHydratePet()
+    public function canHyAndDehydratePet()
     {
         $petSchema = $this->createFullPetSchema();
 
@@ -112,6 +113,42 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
 
         unset($input->x);
         $this->assertEquals($input, $output);
+    }
+
+
+    /**
+     * @test
+     */
+    public function canDehydratePetWithAnySchema()
+    {
+        $dateTime = new \DateTime('2016-01-01');
+        $serializedDate = 'faux date-time';
+        $tags = [
+            new Tag(1, 'one'),
+            new Tag(2, 'two')
+        ];
+        $pet = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), $tags, (object)[
+            'value'   => 10,
+            'created' => $dateTime
+        ]);
+
+        $this->dateTimeSerializer
+            ->expects($this->once())
+            ->method('serialize')
+            ->with($dateTime)
+            ->willReturn($serializedDate);
+
+        /** @var Pet $pet */
+        $petAnonObject = $this->hydrator->dehydrate($pet, new AnySchema());
+
+        $this->assertInstanceOf(\stdClass::class, $petAnonObject);
+        $this->assertSame(1, $petAnonObject->id);
+        $this->assertSame($pet->getPhotoUrls(), $petAnonObject->photoUrls);
+        $this->assertSame($pet->getCategory()->getName(), $petAnonObject->category->name);
+        $this->assertSame($pet->getTags()[0]->getName(), $petAnonObject->tags[0]->name);
+        $this->assertSame($pet->getTags()[1]->getName(), $petAnonObject->tags[1]->name);
+        $this->assertSame($pet->getRating()->value, $petAnonObject->rating->value);
+        $this->assertSame($serializedDate, $petAnonObject->rating->created);
     }
 
     /**

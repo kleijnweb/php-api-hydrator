@@ -8,6 +8,7 @@
 
 namespace KleijnWeb\PhpApi\Hydrator;
 
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
@@ -19,6 +20,11 @@ use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
  */
 class ObjectHydrator implements Hydrator
 {
+    /**
+     * @var AnySchema
+     */
+    private $anySchema;
+
     /**
      * @var bool
      */
@@ -47,6 +53,7 @@ class ObjectHydrator implements Hydrator
         $is32Bit = null
     ) {
 
+        $this->anySchema          = new AnySchema();
         $this->is32Bit            = $is32Bit !== null ? $is32Bit : PHP_INT_SIZE === 4;
         $this->dateTimeSerializer = $dateTimeSerializer ?: new DateTimeSerializer();
         $this->classNameResolver  = $classNameResolver;
@@ -132,15 +139,20 @@ class ObjectHydrator implements Hydrator
     private function dehydrateNode($node, Schema $schema)
     {
         if ($node instanceof \DateTimeInterface) {
-            /** @var ScalarSchema $schema */
             return $this->dateTimeSerializer->serialize($node, $schema);
         }
-        if ($schema instanceof ArraySchema) {
-            return array_map(function ($value) use ($schema) {
-                return $this->dehydrateNode($value, $schema->getItemsSchema());
+        if ($this->shouldTreatAsArray($node, $schema)) {
+            if ($schema instanceof ArraySchema) {
+                return array_map(function ($value) use ($schema) {
+                    return $this->dehydrateNode($value, $schema->getItemsSchema());
+                }, $node);
+            }
+
+            return array_map(function ($value) {
+                return $this->dehydrateNode($value, $this->anySchema);
             }, $node);
         }
-        if ($schema instanceof ObjectSchema) {
+        if ($this->shouldTreatAsObject($node, $schema)) {
             if (!$node instanceof \stdClass) {
                 $class  = get_class($node);
                 $offset = strlen($class) + 2;
@@ -152,11 +164,13 @@ class ObjectHydrator implements Hydrator
             } else {
                 $node = clone $node;
             }
-
             foreach ($node as $name => $value) {
-                $node->$name = $schema->hasPropertySchema($name)
-                    ? $this->dehydrateNode($value, $schema->getPropertySchema($name))
-                    : $value;
+                if ($schema instanceof ObjectSchema) {
+                    $valueSchema = $schema->hasPropertySchema($name)
+                        ? $schema->getPropertySchema($name)
+                        : $this->anySchema;
+                }
+                $node->$name = $this->dehydrateNode($value, isset($valueSchema) ? $valueSchema : $this->anySchema);
             }
 
             return $node;
@@ -193,5 +207,27 @@ class ObjectHydrator implements Hydrator
         settype($value, $schema->getType());
 
         return $value;
+    }
+
+    /**
+     * @param mixed  $node
+     * @param Schema $schema
+     *
+     * @return bool
+     */
+    private function shouldTreatAsObject($node, Schema $schema): bool
+    {
+        return $schema instanceof ObjectSchema || $schema instanceof AnySchema && is_object($node);
+    }
+
+    /**
+     * @param mixed  $node
+     * @param Schema $schema
+     *
+     * @return bool
+     */
+    private function shouldTreatAsArray($node, Schema $schema): bool
+    {
+        return $schema instanceof ArraySchema || $schema instanceof AnySchema && is_array($node);
     }
 }

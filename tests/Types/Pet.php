@@ -51,6 +51,36 @@ class Pet
     private $rating;
 
     /**
+     * @param int       $id
+     * @param string    $name
+     * @param string    $status
+     * @param float     $price
+     * @param string[]  $photoUrls
+     * @param Category  $category
+     * @param Tag[]     $tags
+     * @param \stdClass $rating
+     */
+    public function __construct(
+        int $id,
+        string $name,
+        string $status,
+        float $price,
+        array $photoUrls = [],
+        Category $category = null,
+        array $tags = [],
+        \stdClass $rating = null
+    ) {
+        $this->id        = $id;
+        $this->name      = $name;
+        $this->status    = $status;
+        $this->price     = $price;
+        $this->photoUrls = $photoUrls;
+        $this->category  = $category;
+        $this->tags      = $tags;
+        $this->rating    = $rating;
+    }
+
+    /**
      * @return int
      */
     public function getId(): int

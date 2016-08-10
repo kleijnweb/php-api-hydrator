@@ -32,12 +32,15 @@ class DateTimeSerializer
 
     /**
      * @param \DateTimeInterface $value
-     * @param ScalarSchema       $schema
+     * @param Schema             $schema
      *
      * @return string
      */
-    public function serialize(\DateTimeInterface $value, ScalarSchema $schema): string
+    public function serialize(\DateTimeInterface $value, Schema $schema): string
     {
+        if (!$schema instanceof ScalarSchema) {
+            return $value->format($this->format);
+        }
         if ($schema->hasFormat(Schema::FORMAT_DATE)) {
             return $value->format('Y-m-d');
         }
@@ -46,14 +49,17 @@ class DateTimeSerializer
     }
 
     /**
-     * @param mixed        $value
-     * @param ScalarSchema $schema
+     * @param mixed  $value
+     * @param Schema $schema
      *
      * @return \DateTime
      *
      */
-    public function deserialize($value, ScalarSchema $schema): \DateTime
+    public function deserialize($value, Schema $schema): \DateTime
     {
+        if (!$schema instanceof ScalarSchema) {
+            return new \DateTime($value);
+        }
         if ($schema->hasFormat(Schema::FORMAT_DATE)) {
             return new \DateTime("{$value} 00:00:00");
         }
