@@ -67,11 +67,12 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
             'photoUrls' => ['/a', '/b'],
             'price'     => '100.25',
             'category'  => (object)[
+                'id'   => '1',
                 'name' => 'Shepherd'
             ],
             'tags'      => [
-                (object)['name' => 1],
-                (object)['name' => 2],
+                (object)['id' => '1', 'name' => 1],
+                (object)['id' => '2', 'name' => 2],
             ],
             'rating'    => (object)[
                 'value'   => '10',
@@ -121,13 +122,13 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
      */
     public function canDehydratePetWithAnySchema()
     {
-        $dateTime = new \DateTime('2016-01-01');
+        $dateTime       = new \DateTime('2016-01-01');
         $serializedDate = 'faux date-time';
-        $tags = [
+        $tags           = [
             new Tag(1, 'one'),
             new Tag(2, 'two')
         ];
-        $pet = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), $tags, (object)[
+        $pet            = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), $tags, (object)[
             'value'   => 10,
             'created' => $dateTime
         ]);

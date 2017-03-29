@@ -154,13 +154,14 @@ class ObjectHydrator implements Hydrator
         }
         if ($this->shouldTreatAsObject($node, $schema)) {
             if (!$node instanceof \stdClass) {
-                $class  = get_class($node);
-                $offset = strlen($class) + 2;
-                $data   = (array)$node;
-                $array  = array_filter(array_combine(array_map(function ($k) use ($offset) {
-                    return substr($k, $offset);
-                }, array_keys($data)), array_values($data)));
-                $node   = (object)$array;
+                $data      = (object)[];
+                $reflector = new \ReflectionObject($node);
+
+                foreach ($reflector->getProperties() as $attribute) {
+                    $attribute->setAccessible(true);
+                    $data->{$attribute->getName()} = $attribute->getValue($node);
+                }
+                $node = $data;
             } else {
                 $node = clone $node;
             }
