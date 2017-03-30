@@ -64,6 +64,6 @@ class DateTimeSerializer
             return new \DateTime("{$value} 00:00:00");
         }
 
-        return \DateTime::createFromFormat(\DateTime::RFC3339, $value);
+        return \DateTime::createFromFormat($this->format, $value);
     }
 }

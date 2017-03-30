@@ -101,4 +101,23 @@ class DateTimeSerializerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($dateTime->format(\DateTime::RSS), $actual);
     }
+
+    /**
+     * @test
+     */
+    public function willDeserializeValueUsingScalarSchemaUsingCustomDateTimeFormat()
+    {
+        $preciseDateTimeFormat = 'Y-m-d\TH:i:s.uP';
+        $preciseDateTime = '2010-01-01T23:45:59.000002+01:00';
+
+        $schemaDefinition = new \stdClass();
+        $schemaDefinition->format = Schema::FORMAT_DATE_TIME;
+
+        $schema = new ScalarSchema($schemaDefinition);
+
+        $serializer = new DateTimeSerializer($preciseDateTimeFormat);
+        $actualDate = $serializer->deserialize($preciseDateTime, $schema);
+
+        $this->assertEquals(\DateTime::createFromFormat($preciseDateTimeFormat, $preciseDateTime), $actualDate);
+    }
 }
