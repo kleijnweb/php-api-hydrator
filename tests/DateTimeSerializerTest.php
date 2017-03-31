@@ -12,6 +12,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
+use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
@@ -51,7 +52,7 @@ class DateTimeSerializerTest extends \PHPUnit_Framework_TestCase
      */
     public function willSerializeDateTime()
     {
-        $dateTime   = '2016-01-01T23:59:59+01:00';
+        $dateTime   = '2016-01-01T23:59:59.000000+01:00';
         $serializer = new DateTimeSerializer();
         $schema     = new ScalarSchema((object)['type' => Schema::TYPE_STRING, 'format' => Schema::FORMAT_DATE_TIME]);
 
@@ -105,12 +106,25 @@ class DateTimeSerializerTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function willThrowExceptionWhenDateNotParsableAccordingToFormat()
+    {
+        $serializer = new DateTimeSerializer(\DateTime::RSS);
+        $schema     = new ScalarSchema((object)['format' => Schema::FORMAT_DATE]);
+
+        $this->setExpectedException(DateTimeNotParsableException::class);
+
+        $serializer->deserialize('2016-01-01T23:59:59+01:00', $schema);
+    }
+
+    /**
+     * @test
+     */
     public function willDeserializeValueUsingScalarSchemaUsingCustomDateTimeFormat()
     {
-        $preciseDateTimeFormat = 'Y-m-d\TH:i:s.uP';
-        $preciseDateTime = '2010-01-01T23:45:59.000002+01:00';
+        $preciseDateTimeFormat = 'm-d-Y\TH:i:s.uP';
+        $preciseDateTime       = '01-01-2010T23:45:59.000002+01:00';
 
-        $schemaDefinition = new \stdClass();
+        $schemaDefinition         = new \stdClass();
         $schemaDefinition->format = Schema::FORMAT_DATE_TIME;
 
         $schema = new ScalarSchema($schemaDefinition);

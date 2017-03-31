@@ -26,7 +26,9 @@ You can also technically use (abuse?) the hydrator to cast scalar values: it wil
 
 ### DateTime
 
-Parses and produces [RFC3339](http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14) dates, in accorance with OpenAPi 2.0. Easily tweakable by injecting a custom instance of `DateTimeSerializer`:
+By default will toss strings in date and date-time format into the `DateTime` constructor, and lets it figure out how to parse. When serializing it uses `Y-m-d\TH:i:s.uP`.
+
+The expected in- and output format can be tweaked by injecting a custom instance of `DateTimeSerializer`:
  
  ```php
  $hydrator = new ObjectHydrator(new ClassNameResolver(['A\\NameSpace\\Somewhere']), new DateTimeSerializer(\DateTime::RFC850);

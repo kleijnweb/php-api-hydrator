@@ -9,12 +9,15 @@ namespace KleijnWeb\PhpApi\Hydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
+use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
 class DateTimeSerializer
 {
+    const DEFAULT_FORMAT = 'Y-m-d\TH:i:s.uP';
+
     /**
      * @var string
      */
@@ -25,7 +28,7 @@ class DateTimeSerializer
      *
      * @param string $format
      */
-    public function __construct(string $format = \DateTime::RFC3339)
+    public function __construct(string $format = null)
     {
         $this->format = $format;
     }
@@ -38,14 +41,11 @@ class DateTimeSerializer
      */
     public function serialize(\DateTimeInterface $value, Schema $schema): string
     {
-        if (!$schema instanceof ScalarSchema) {
-            return $value->format($this->format);
-        }
-        if ($schema->hasFormat(Schema::FORMAT_DATE)) {
+        if ($schema instanceof ScalarSchema && $schema->hasFormat(Schema::FORMAT_DATE)) {
             return $value->format('Y-m-d');
         }
 
-        return $value->format($this->format);
+        return $value->format($this->format ?: self::DEFAULT_FORMAT);
     }
 
     /**
@@ -57,13 +57,19 @@ class DateTimeSerializer
      */
     public function deserialize($value, Schema $schema): \DateTime
     {
-        if (!$schema instanceof ScalarSchema) {
-            return new \DateTime($value);
+        if ($schema instanceof ScalarSchema) {
+            if ($this->format) {
+                if (false === $result = \DateTime::createFromFormat($this->format, $value)) {
+                    throw new DateTimeNotParsableException(
+                        sprintf("Date '%s' not parsable as '%s'", $value, $this->format)
+                    );
+                }
+                return $result;
+            }
+            if ($schema->hasFormat(Schema::FORMAT_DATE)) {
+                return new \DateTime("{$value} 00:00:00");
+            }
         }
-        if ($schema->hasFormat(Schema::FORMAT_DATE)) {
-            return new \DateTime("{$value} 00:00:00");
-        }
-
-        return \DateTime::createFromFormat($this->format, $value);
+        return new \DateTime($value);
     }
 }
