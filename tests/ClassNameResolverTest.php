@@ -11,29 +11,24 @@ namespace KleijnWeb\PhpApi\Hydrator\Tests;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\Exception\ClassNotFoundException;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class ClassNameResolverTest extends \PHPUnit_Framework_TestCase
+class ClassNameResolverTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function canResolveExistingClass()
+    public function testCanResolveExistingClass()
     {
         $resolver = new ClassNameResolver([__NAMESPACE__ . '\\Types']);
-        $this->assertSame(Pet::class, $resolver->resolve('Pet'));
+        self::assertSame(Pet::class, $resolver->resolve('Pet'));
     }
 
-    /**
-     * @test
-     */
-    public function willThrowExceptionWhenClassNameIsNotResolvable()
+    public function testWillThrowExceptionWhenClassNameIsNotResolvable()
     {
         $resolver = new ClassNameResolver([__NAMESPACE__ . '\\Types']);
 
-        $this->setExpectedException(ClassNotFoundException::class);
+        self::expectException(ClassNotFoundException::class);
         $resolver->resolve('ProjectX');
     }
 }

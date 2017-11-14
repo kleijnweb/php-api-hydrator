@@ -21,11 +21,12 @@ use KleijnWeb\PhpApi\Hydrator\ObjectHydrator;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Tag;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
+class ObjectHydratorTest extends TestCase
 {
     /**
      * @var ObjectHydrator
@@ -52,10 +53,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         $this->hydrator           = new ObjectHydrator($this->classNameResolver, $dateTimeSerializer);
     }
 
-    /**
-     * @test
-     */
-    public function canHyAndDehydratePet()
+    public function testCanHyAndDehydratePet()
     {
         $petSchema = $this->createFullPetSchema();
 
@@ -82,7 +80,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
 
         $dateTime = new \DateTime();
         $this->dateTimeSerializer
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('deserialize')
             ->with($input->rating->created)
             ->willReturn($dateTime);
@@ -90,22 +88,22 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         /** @var Pet $pet */
         $pet = $this->hydrator->hydrate($input, $petSchema);
 
-        $this->assertInternalType('string', $input->rating->created);
+        self::assertInternalType('string', $input->rating->created);
 
-        $this->assertInstanceOf(Pet::class, $pet);
-        $this->assertInstanceOf(Category::class, $pet->getCategory());
-        $this->assertInternalType('int', $pet->getId());
-        $this->assertInternalType('array', $pet->getTags());
-        $this->assertInstanceOf(Tag::class, $pet->getTags()[0]);
-        $this->assertInternalType('string', $pet->getTags()[0]->getName());
-        $this->assertInstanceOf(Tag::class, $pet->getTags()[1]);
-        $this->assertInternalType('string', $pet->getTags()[1]->getName());
-        $this->assertInstanceOf(\stdClass::class, $pet->getRating());
-        $this->assertInternalType('int', $pet->getRating()->value);
-        $this->assertSame($dateTime, $pet->getRating()->created);
+        self::assertInstanceOf(Pet::class, $pet);
+        self::assertInstanceOf(Category::class, $pet->getCategory());
+        self::assertInternalType('int', $pet->getId());
+        self::assertInternalType('array', $pet->getTags());
+        self::assertInstanceOf(Tag::class, $pet->getTags()[0]);
+        self::assertInternalType('string', $pet->getTags()[0]->getName());
+        self::assertInstanceOf(Tag::class, $pet->getTags()[1]);
+        self::assertInternalType('string', $pet->getTags()[1]->getName());
+        self::assertInstanceOf(\stdClass::class, $pet->getRating());
+        self::assertInternalType('int', $pet->getRating()->value);
+        self::assertSame($dateTime, $pet->getRating()->created);
 
         $this->dateTimeSerializer
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('serialize')
             ->with($dateTime)
             ->willReturn($input->rating->created);
@@ -113,14 +111,10 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         $output = $this->hydrator->dehydrate($pet, $petSchema);
 
         unset($input->x);
-        $this->assertEquals($input, $output);
+        self::assertEquals($input, $output);
     }
 
-
-    /**
-     * @test
-     */
-    public function canDehydratePetWithAnySchema()
+    public function testCanDehydratePetWithAnySchema()
     {
         $dateTime       = new \DateTime('2016-01-01');
         $serializedDate = 'faux date-time';
@@ -134,7 +128,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         ]);
 
         $this->dateTimeSerializer
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('serialize')
             ->with($dateTime)
             ->willReturn($serializedDate);
@@ -142,24 +136,21 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         /** @var Pet $pet */
         $petAnonObject = $this->hydrator->dehydrate($pet, new AnySchema());
 
-        $this->assertInstanceOf(\stdClass::class, $petAnonObject);
-        $this->assertSame(1, $petAnonObject->id);
-        $this->assertSame($pet->getPhotoUrls(), $petAnonObject->photoUrls);
-        $this->assertSame($pet->getCategory()->getName(), $petAnonObject->category->name);
-        $this->assertSame($pet->getTags()[0]->getName(), $petAnonObject->tags[0]->name);
-        $this->assertSame($pet->getTags()[1]->getName(), $petAnonObject->tags[1]->name);
-        $this->assertSame($pet->getRating()->value, $petAnonObject->rating->value);
-        $this->assertSame($serializedDate, $petAnonObject->rating->created);
+        self::assertInstanceOf(\stdClass::class, $petAnonObject);
+        self::assertSame(1, $petAnonObject->id);
+        self::assertSame($pet->getPhotoUrls(), $petAnonObject->photoUrls);
+        self::assertSame($pet->getCategory()->getName(), $petAnonObject->category->name);
+        self::assertSame($pet->getTags()[0]->getName(), $petAnonObject->tags[0]->name);
+        self::assertSame($pet->getTags()[1]->getName(), $petAnonObject->tags[1]->name);
+        self::assertSame($pet->getRating()->value, $petAnonObject->rating->value);
+        self::assertSame($serializedDate, $petAnonObject->rating->created);
     }
 
-    /**
-     * @test
-     */
-    public function canHandleLargeArray()
+    public function testCanHandleLargeArray()
     {
         $size = 10000;
         $this->dateTimeSerializer
-            ->expects($this->any())
+            ->expects(self::any())
             ->method('deserialize')
             ->willReturnCallback(function ($value) {
                 return new\DateTime($value);
@@ -191,12 +182,9 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
     }
 
-    /**
-     * @test
-     */
-    public function willThrowExceptionIfTryingToHydrateInt64On32BitOs()
+    public function testWillThrowExceptionIfTryingToHydrateInt64On32BitOs()
     {
-        $this->setExpectedException(UnsupportedException::class);
+        self::expectException(UnsupportedException::class);
 
         $petSchema = new ScalarSchema((object)['type' => 'integer', 'format' => Schema::FORMAT_INT64]);
 
