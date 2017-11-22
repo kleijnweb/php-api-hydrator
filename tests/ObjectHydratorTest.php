@@ -155,6 +155,7 @@ class ObjectHydratorTest extends TestCase
 
     /**
      * @test
+     * @group perf
      */
     public function canHandleLargeArray()
     {
@@ -193,7 +194,8 @@ class ObjectHydratorTest extends TestCase
         }
         $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
 
-        // Just making sure future changes don't introduce crippling performance issues. On very, very, very slow systems this may fail, but unlikely.
+        // Just making sure future changes don't introduce crippling performance issues.
+        // This runs in under 2s on my old W3570. Travis does it in about 3.7s at the time of writing.
         $this->assertLessThan(5, microtime(true) - $start);
     }
 
