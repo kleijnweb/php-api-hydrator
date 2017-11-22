@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 /*
  * This file is part of the KleijnWeb\PhpApi\Hydrator package.
  *
@@ -40,7 +40,7 @@ class DateTimeSerializerTest extends TestCase
         $serializer = new DateTimeSerializer();
         $schema     = new ScalarSchema((object)[
             'type'   => Schema::TYPE_STRING,
-            'format' => Schema::FORMAT_DATE
+            'format' => Schema::FORMAT_DATE,
         ]);
 
         $actual                 = $serializer->deserialize('2016-01-01', $schema);
@@ -69,7 +69,7 @@ class DateTimeSerializerTest extends TestCase
         $serializer = new DateTimeSerializer();
         $schema     = new ScalarSchema((object)[
             'type'   => Schema::TYPE_STRING,
-            'format' => Schema::FORMAT_DATE_TIME
+            'format' => Schema::FORMAT_DATE_TIME,
         ]);
 
         $actual                 = $serializer->deserialize($dateTime, $schema);

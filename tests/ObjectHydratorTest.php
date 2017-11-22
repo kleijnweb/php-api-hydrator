@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 /*
  * This file is part of the KleijnWeb\PhpApi\Hydrator package.
  *
@@ -69,7 +69,7 @@ class ObjectHydratorTest extends TestCase
             'price'     => '100.25',
             'category'  => (object)[
                 'id'   => '1',
-                'name' => 'Shepherd'
+                'name' => 'Shepherd',
             ],
             'tags'      => [
                 (object)['id' => '1', 'name' => 1],
@@ -77,8 +77,8 @@ class ObjectHydratorTest extends TestCase
             ],
             'rating'    => (object)[
                 'value'   => '10',
-                'created' => '2016-01-01'
-            ]
+                'created' => '2016-01-01',
+            ],
         ];
 
         $dateTime = new \DateTime();
@@ -127,11 +127,11 @@ class ObjectHydratorTest extends TestCase
         $serializedDate = 'faux date-time';
         $tags           = [
             new Tag(1, 'one'),
-            new Tag(2, 'two')
+            new Tag(2, 'two'),
         ];
         $pet            = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), $tags, (object)[
             'value'   => 10,
-            'created' => $dateTime
+            'created' => $dateTime,
         ]);
 
         $this->dateTimeSerializer
@@ -179,7 +179,7 @@ class ObjectHydratorTest extends TestCase
                 'photoUrls' => ['/' . (string)rand(), '/' . (string)rand()],
                 'price'     => (string)rand() . '.25',
                 'category'  => (object)[
-                    'name' => 'Shepherd'
+                    'name' => 'Shepherd',
                 ],
                 'tags'      => [
                     (object)['name' => (string)rand()],
@@ -187,8 +187,8 @@ class ObjectHydratorTest extends TestCase
                 ],
                 'rating'    => (object)[
                     'value'   => '10',
-                    'created' => '2016-01-01'
-                ]
+                    'created' => '2016-01-01',
+                ],
             ];
         }
         $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
@@ -217,7 +217,7 @@ class ObjectHydratorTest extends TestCase
     private function createFullPetSchema(): ObjectSchema
     {
         $tagSchema = new ObjectSchema((object)[], (object)[
-            'name' => new ScalarSchema((object)['type' => 'string'])
+            'name' => new ScalarSchema((object)['type' => 'string']),
         ]);
         $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
         $categorySchema = new ObjectSchema((object)[]);
@@ -231,8 +231,8 @@ class ObjectHydratorTest extends TestCase
                 'tags'     => new ArraySchema((object)[], $tagSchema),
                 'rating'   => new ObjectSchema((object)[], (object)[
                     'value'   => new ScalarSchema((object)['type' => 'number']),
-                    'created' => new ScalarSchema((object)['type' => 'string', 'format' => 'date'])
-                ])
+                    'created' => new ScalarSchema((object)['type' => 'string', 'format' => 'date']),
+                ]),
             ]
         );
         $petSchema->setComplexType(new ComplexType('Pet', $petSchema));
