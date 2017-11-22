@@ -1,10 +1,11 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 /*
  * This file is part of the KleijnWeb\PhpApi\Hydrator package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace KleijnWeb\PhpApi\Hydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
@@ -64,12 +65,14 @@ class DateTimeSerializer
                         sprintf("Date '%s' not parsable as '%s'", $value, $this->format)
                     );
                 }
+
                 return $result;
             }
             if ($schema->hasFormat(Schema::FORMAT_DATE)) {
                 return new \DateTime("{$value} 00:00:00");
             }
         }
+
         return new \DateTime($value);
     }
 }

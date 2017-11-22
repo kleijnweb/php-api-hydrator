@@ -13,11 +13,12 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class DateTimeSerializerTest extends \PHPUnit_Framework_TestCase
+class DateTimeSerializerTest extends TestCase
 {
     /**
      * @test
@@ -111,7 +112,7 @@ class DateTimeSerializerTest extends \PHPUnit_Framework_TestCase
         $serializer = new DateTimeSerializer(\DateTime::RSS);
         $schema     = new ScalarSchema((object)['format' => Schema::FORMAT_DATE]);
 
-        $this->setExpectedException(DateTimeNotParsableException::class);
+        $this->expectException(DateTimeNotParsableException::class);
 
         $serializer->deserialize('2016-01-01T23:59:59+01:00', $schema);
     }

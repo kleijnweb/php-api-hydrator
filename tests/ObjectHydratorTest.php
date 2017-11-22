@@ -21,11 +21,12 @@ use KleijnWeb\PhpApi\Hydrator\ObjectHydrator;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Tag;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
+class ObjectHydratorTest extends TestCase
 {
     /**
      * @var ObjectHydrator
@@ -157,6 +158,8 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
      */
     public function canHandleLargeArray()
     {
+        $start = microtime(true);
+
         $size = 10000;
         $this->dateTimeSerializer
             ->expects($this->any())
@@ -169,18 +172,18 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
 
         for ($i = 0; $i < $size; ++$i) {
             $input[] = (object)[
-                'id'        => '1',
-                'name'      => 'Fido',
-                'status'    => 'single',
+                'id'        => (string)rand(),
+                'name'      => (string)rand(),
+                'status'    => (string)rand(),
                 'x'         => 'y',
-                'photoUrls' => ['/a', '/b'],
-                'price'     => '100.25',
+                'photoUrls' => ['/' . (string)rand(), '/' . (string)rand()],
+                'price'     => (string)rand() . '.25',
                 'category'  => (object)[
                     'name' => 'Shepherd'
                 ],
                 'tags'      => [
-                    (object)['name' => 1],
-                    (object)['name' => 2],
+                    (object)['name' => (string)rand()],
+                    (object)['name' => (string)rand()],
                 ],
                 'rating'    => (object)[
                     'value'   => '10',
@@ -189,6 +192,9 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
             ];
         }
         $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
+
+        // Just making sure future changes don't introduce crippling performance issues. On very, very, very slow systems this may fail, but unlikely.
+        $this->assertLessThan(5, microtime(true) - $start);
     }
 
     /**
@@ -196,7 +202,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
      */
     public function willThrowExceptionIfTryingToHydrateInt64On32BitOs()
     {
-        $this->setExpectedException(UnsupportedException::class);
+        $this->expectException(UnsupportedException::class);
 
         $petSchema = new ScalarSchema((object)['type' => 'integer', 'format' => Schema::FORMAT_INT64]);
 
@@ -215,7 +221,7 @@ class ObjectHydratorTest extends \PHPUnit_Framework_TestCase
         ]);
         $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
         $categorySchema = new ObjectSchema((object)[]);
-        $categorySchema->setComplexType(new ComplexType('Category', $categorySchema, $categorySchema));
+        $categorySchema->setComplexType(new ComplexType('Category', $categorySchema));
         $petSchema = new ObjectSchema(
             (object)[],
             (object)[
