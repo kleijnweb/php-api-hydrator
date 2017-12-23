@@ -159,7 +159,9 @@ class ObjectHydrator implements Hydrator
 
                 foreach ($reflector->getProperties() as $attribute) {
                     $attribute->setAccessible(true);
-                    $data->{$attribute->getName()} = $attribute->getValue($node);
+                    if (null !== $value = $attribute->getValue($node)) {
+                        $data->{$attribute->getName()} = $attribute->getValue($node);
+                    }
                 }
                 $node = $data;
             } else {

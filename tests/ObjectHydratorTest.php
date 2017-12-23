@@ -153,6 +153,25 @@ class ObjectHydratorTest extends TestCase
         $this->assertSame($serializedDate, $petAnonObject->rating->created);
     }
 
+
+    /**
+     * @test
+     */
+    public function willOmitNullValues()
+    {
+        $pet = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), [], (object)[]);
+
+        $refl     = new \ReflectionObject($pet);
+        $property = $refl->getProperty('name');
+        $property->setAccessible(true);
+        $property->setValue($pet, null);
+
+        $petSchema = $this->createFullPetSchema();
+        $data      = $this->hydrator->dehydrate($pet, $petSchema);
+
+        $this->assertObjectNotHasAttribute('name', $data);
+    }
+
     /**
      * @test
      * @group perf
@@ -177,7 +196,7 @@ class ObjectHydratorTest extends TestCase
                 'name'      => (string)rand(),
                 'status'    => (string)rand(),
                 'x'         => 'y',
-                'photoUrls' => ['/' . (string)rand(), '/' . (string)rand()],
+                'photoUrls' => [' / ' . (string)rand(), ' / ' . (string)rand()],
                 'price'     => (string)rand() . '.25',
                 'category'  => (object)[
                     'name' => 'Shepherd',
@@ -194,7 +213,7 @@ class ObjectHydratorTest extends TestCase
         }
         $this->hydrator->hydrate($input, new ArraySchema((object)[], $this->createFullPetSchema()));
 
-        // Just making sure future changes don't introduce crippling performance issues.
+        // Just making sure future changes don't introduce crippling performance issues .
         // This runs in under 2s on my old W3570. Travis does it in about 3.7s at the time of writing.
         $this->assertLessThan(5, microtime(true) - $start);
     }
