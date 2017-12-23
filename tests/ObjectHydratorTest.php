@@ -16,11 +16,13 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
+use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use KleijnWeb\PhpApi\Hydrator\ObjectHydrator;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Tag;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -39,7 +41,7 @@ class ObjectHydratorTest extends TestCase
     private $classNameResolver;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var MockObject
      */
     private $dateTimeSerializer;
 
@@ -49,8 +51,9 @@ class ObjectHydratorTest extends TestCase
         $this->dateTimeSerializer = $dateTimeSerializer = $this->getMockBuilder(DateTimeSerializer::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->classNameResolver  = new ClassNameResolver([__NAMESPACE__ . '\\Types']);
-        $this->hydrator           = new ObjectHydrator($this->classNameResolver, $dateTimeSerializer);
+
+        $this->classNameResolver = new ClassNameResolver([__NAMESPACE__ . '\\Types']);
+        $this->hydrator          = new ObjectHydrator($this->classNameResolver, $dateTimeSerializer);
     }
 
     /**
@@ -91,6 +94,7 @@ class ObjectHydratorTest extends TestCase
         /** @var Pet $pet */
         $pet = $this->hydrator->hydrate($input, $petSchema);
 
+        // Making sure the input is unaffected
         $this->assertInternalType('string', $input->rating->created);
 
         $this->assertInstanceOf(Pet::class, $pet);
@@ -116,7 +120,6 @@ class ObjectHydratorTest extends TestCase
         unset($input->x);
         $this->assertEquals($input, $output);
     }
-
 
     /**
      * @test
@@ -153,11 +156,10 @@ class ObjectHydratorTest extends TestCase
         $this->assertSame($serializedDate, $petAnonObject->rating->created);
     }
 
-
     /**
      * @test
      */
-    public function willOmitNullValues()
+    public function willOmitNullValuesWhenDehydrating()
     {
         $this->assertEquals(
             (object)['foo' => 'a', 'bar'],
@@ -176,6 +178,105 @@ class ObjectHydratorTest extends TestCase
 
         $this->assertSame(1, $data->id);
         $this->assertObjectNotHasAttribute('name', $data);
+    }
+
+    /**
+     * @test
+     */
+    public function willNotOmitNullTypeValuesWhenDehydrating()
+    {
+        $object = (object)['aInt' => 1, 'nullProperty' => null];
+        $schema = new ObjectSchema((object)[], (object)[
+            'aInt' => new ScalarSchema((object)[
+                'type' => ScalarSchema::TYPE_INT,
+            ]),
+            'nullProperty' => new ScalarSchema((object)[
+                'type' => ScalarSchema::TYPE_NULL,
+            ]),
+        ]);
+
+        $data = $this->hydrator->dehydrate($object, $schema);
+
+        $this->assertSame(1, $data->aInt);
+        $this->assertObjectHasAttribute('nullProperty', $data);
+        $this->assertNull($data->nullProperty);
+    }
+
+    /**
+     * @test
+     */
+    public function canHydrateStringUsingAnySchema()
+    {
+        $this->dateTimeSerializer
+            ->expects($this->once())
+            ->method('deserialize')
+            ->willThrowException(new DateTimeNotParsableException());
+
+        $this->assertEquals(
+            'something',
+            $this->hydrator->hydrate('something', new AnySchema())
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function canHydrateDateTimeUsingAnySchema()
+    {
+        $this->dateTimeSerializer
+            ->expects($this->once())
+            ->method('deserialize')
+            ->willReturn($expected = new \DateTime());
+
+        $this->assertEquals(
+            $expected,
+            $this->hydrator->hydrate('something', new AnySchema())
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function canHydrateNumbersUsingAnySchema()
+    {
+        $this->assertSame(
+            2017,
+            $this->hydrator->hydrate('2017', new AnySchema())
+        );
+        $this->assertSame(
+            1.5,
+            $this->hydrator->hydrate('1.5', new AnySchema())
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function willApplyDefaultsWhenHydrating()
+    {
+        $this->dateTimeSerializer
+            ->expects($this->once())
+            ->method('deserialize')
+            ->with('now')
+            ->willReturn($now = new \DateTime('now'));
+
+        /** @var Pet $actual */
+        $actual = $this->hydrator->hydrate(
+            (object)[
+                'id'     => '1',
+                'name'   => 'Fido',
+                'rating' => (object)['value' => '10'],
+            ],
+            $this->createFullPetSchema()
+        );
+
+        $this->assertInstanceOf(Pet::class, $actual);
+        $this->assertSame(100.0, $actual->getPrice());
+        $this->assertSame([], $actual->getTags());
+        $this->assertSame($now, $actual->getRating()->created);
+
+        $this->expectException(\TypeError::class);
+        $actual->getPhotoUrls();
     }
 
     /**
@@ -247,18 +348,23 @@ class ObjectHydratorTest extends TestCase
             'name' => new ScalarSchema((object)['type' => 'string']),
         ]);
         $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
-        $categorySchema = new ObjectSchema((object)[]);
+        $categorySchema = new ObjectSchema((object)[], (object)[]);
         $categorySchema->setComplexType(new ComplexType('Category', $categorySchema));
         $petSchema = new ObjectSchema(
             (object)[],
             (object)[
                 'id'       => new ScalarSchema((object)['type' => 'integer']),
-                'price'    => new ScalarSchema((object)['type' => 'number']),
+                'price'    => new ScalarSchema((object)['type' => 'number', 'default' => 100.0]),
+                'label'    => new ScalarSchema((object)['type' => 'string']),
                 'category' => $categorySchema,
-                'tags'     => new ArraySchema((object)[], $tagSchema),
+                'tags'     => new ArraySchema((object)['default' => []], $tagSchema),
                 'rating'   => new ObjectSchema((object)[], (object)[
                     'value'   => new ScalarSchema((object)['type' => 'number']),
-                    'created' => new ScalarSchema((object)['type' => 'string', 'format' => 'date']),
+                    'created' => new ScalarSchema((object)[
+                        'type'    => 'string',
+                        'format'  => 'date',
+                        'default' => 'now',
+                    ]),
                 ]),
             ]
         );

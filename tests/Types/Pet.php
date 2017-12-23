@@ -67,7 +67,7 @@ class Pet
         float $price,
         array $photoUrls = [],
         Category $category = null,
-        array $tags = [],
+        array $tags = null,
         \stdClass $rating = null
     ) {
         $this->id        = $id;

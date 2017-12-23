@@ -52,7 +52,6 @@ class ObjectHydrator implements Hydrator
         DateTimeSerializer $dateTimeSerializer = null,
         $is32Bit = null
     ) {
-
         $this->anySchema          = new AnySchema();
         $this->is32Bit            = $is32Bit !== null ? $is32Bit : PHP_INT_SIZE === 4;
         $this->dateTimeSerializer = $dateTimeSerializer ?: new DateTimeSerializer();
@@ -89,12 +88,35 @@ class ObjectHydrator implements Hydrator
      */
     private function hydrateNode($node, Schema $schema)
     {
-        if ($schema instanceof ArraySchema) {
+        $node = $this->applyDefaults($node, $schema);
+
+        if ($schema instanceof AnySchema) {
+            if (is_array($node)) {
+                return array_map(function ($value) use ($schema) {
+                    return $this->hydrateNode($value, $this->anySchema);
+                }, $node);
+            } elseif (is_object($node)) {
+                $object = (object)[];
+                foreach ($node as $property => $value) {
+                    $object->$property = $this->hydrateNode($value, $this->anySchema);
+                }
+
+                return $object;
+            }
+            if (is_numeric($node)) {
+                return ctype_digit($node) ? (int)$node : (float)$node;
+            }
+            try {
+                $node = $this->dateTimeSerializer->deserialize($node, $schema);
+            } catch (\Throwable $e) {
+                return $node;
+            }
+
+        } elseif ($schema instanceof ArraySchema) {
             return array_map(function ($value) use ($schema) {
                 return $this->hydrateNode($value, $schema->getItemsSchema());
             }, $node);
-        }
-        if ($schema instanceof ObjectSchema) {
+        } elseif ($schema instanceof ObjectSchema) {
             if (!$schema->hasComplexType()) {
                 $object = clone $node;
                 foreach ($node as $name => $value) {
@@ -124,10 +146,11 @@ class ObjectHydrator implements Hydrator
             }
 
             return $object;
+        } elseif ($schema instanceof ScalarSchema) {
+            return $this->castScalarValue($node, $schema);
         }
 
-        /** @var ScalarSchema $schema */
-        return $this->castScalarValue($node, $schema);
+        return $node;
     }
 
     /**
@@ -139,52 +162,40 @@ class ObjectHydrator implements Hydrator
     private function dehydrateNode($node, Schema $schema)
     {
         if ($node instanceof \DateTimeInterface) {
-            return $this->dateTimeSerializer->serialize($node, $schema);
-        }
-
-        if ($this->shouldTreatAsArray($node, $schema)) {
-            if ($schema instanceof ArraySchema) {
-                return array_map(function ($value) use ($schema) {
-                    return $this->dehydrateNode($value, $schema->getItemsSchema());
-                }, $node);
-            }
-
-            return array_map(function ($value) {
-                return $this->dehydrateNode($value, $this->anySchema);
+            $node = $this->dateTimeSerializer->serialize($node, $schema);
+        } elseif ($this->shouldTreatAsArray($node, $schema)) {
+            $node = array_map(function ($value) use ($schema) {
+                return $this->dehydrateNode(
+                    $value,
+                    $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema
+                );
             }, $node);
-        }
+        } elseif ($this->shouldTreatAsObject($node, $schema)) {
+            $input = $node;
+            $node  = (object)[];
 
-        if ($this->shouldTreatAsObject($node, $schema)) {
-            $data = (object)[];
-
-            if (!$node instanceof \stdClass) {
-                $reflector = new \ReflectionObject($node);
-
-                foreach ($reflector->getProperties() as $attribute) {
-                    $attribute->setAccessible(true);
-                    if (null !== $value = $attribute->getValue($node)) {
-                        $data->{$attribute->getName()} = $value;
-                    }
-                }
-                $node = $data;
+            if (!$input instanceof \stdClass) {
+                $input = $this->extractValuesFromTypedObject($input);
             }
 
-            foreach ($node as $name => $value) {
-                if ($schema instanceof ObjectSchema) {
-                    $valueSchema = $schema->hasPropertySchema($name)
-                        ? $schema->getPropertySchema($name)
-                        : $this->anySchema;
+            foreach ($input as $name => $value) {
+
+                $valueSchema = $schema instanceof ObjectSchema && $schema->hasPropertySchema($name)
+                    ? $schema->getPropertySchema($name)
+                    : $this->anySchema;
+
+                if ($this->isAllowedNull($value, $valueSchema)) {
+                    $node->$name = null;
+                    continue;
                 }
 
                 if (null !== $value) {
-                    $data->$name = $this->dehydrateNode(
+                    $node->$name = $this->dehydrateNode(
                         $value,
-                        isset($valueSchema) ? $valueSchema : $this->anySchema
+                        $valueSchema
                     );
                 }
             }
-
-            return $data;
         }
 
         return $node;
@@ -240,5 +251,52 @@ class ObjectHydrator implements Hydrator
     private function shouldTreatAsArray($node, Schema $schema): bool
     {
         return $schema instanceof ArraySchema || $schema instanceof AnySchema && is_array($node);
+    }
+
+    /**
+     * @param mixed  $value
+     * @param Schema $schema
+     * @return bool
+     */
+    private function isAllowedNull($value, Schema $schema): bool
+    {
+        return $value === null && $schema instanceof ScalarSchema && $schema->isType(Schema::TYPE_NULL);
+    }
+
+    /**
+     * @param mixed  $node
+     * @param Schema $schema
+     *
+     * @return mixed
+     */
+    private function applyDefaults($node, Schema $schema)
+    {
+        if ($node instanceof \stdClass && $schema instanceof ObjectSchema) {
+            /** @var Schema $propertySchema */
+            foreach ($schema->getPropertySchemas() as $name => $propertySchema) {
+                if (!isset($node->$name) && null !== $default = $propertySchema->getDefault()) {
+                    $node->$name = $default;
+                }
+            }
+        }
+
+        return $node === null ? $schema->getDefault() : $node;
+    }
+
+    /**
+     * @param $node
+     * @return \stdClass
+     */
+    private function extractValuesFromTypedObject($node): array
+    {
+        $reflector  = new \ReflectionObject($node);
+        $properties = $reflector->getProperties();
+        $data       = [];
+        foreach ($properties as $attribute) {
+            $attribute->setAccessible(true);
+            $data[$attribute->getName()] = $attribute->getValue($node);
+        }
+
+        return $data;
     }
 }

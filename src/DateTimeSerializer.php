@@ -58,16 +58,17 @@ class DateTimeSerializer
      */
     public function deserialize($value, Schema $schema): \DateTime
     {
-        if ($schema instanceof ScalarSchema) {
-            if ($this->format) {
-                if (false === $result = \DateTime::createFromFormat($this->format, $value)) {
-                    throw new DateTimeNotParsableException(
-                        sprintf("Date '%s' not parsable as '%s'", $value, $this->format)
-                    );
-                }
-
-                return $result;
+        if ($this->format) {
+            if (false === $result = \DateTime::createFromFormat($this->format, $value)) {
+                throw new DateTimeNotParsableException(
+                    sprintf("Date '%s' not parsable as '%s'", $value, $this->format)
+                );
             }
+
+            return $result;
+        }
+
+        if ($schema instanceof ScalarSchema) {
             if ($schema->hasFormat(Schema::FORMAT_DATE)) {
                 return new \DateTime("{$value} 00:00:00");
             }
