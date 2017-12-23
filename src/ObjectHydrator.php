@@ -141,6 +141,7 @@ class ObjectHydrator implements Hydrator
         if ($node instanceof \DateTimeInterface) {
             return $this->dateTimeSerializer->serialize($node, $schema);
         }
+
         if ($this->shouldTreatAsArray($node, $schema)) {
             if ($schema instanceof ArraySchema) {
                 return array_map(function ($value) use ($schema) {
@@ -152,31 +153,38 @@ class ObjectHydrator implements Hydrator
                 return $this->dehydrateNode($value, $this->anySchema);
             }, $node);
         }
+
         if ($this->shouldTreatAsObject($node, $schema)) {
+            $data = (object)[];
+
             if (!$node instanceof \stdClass) {
-                $data      = (object)[];
                 $reflector = new \ReflectionObject($node);
 
                 foreach ($reflector->getProperties() as $attribute) {
                     $attribute->setAccessible(true);
                     if (null !== $value = $attribute->getValue($node)) {
-                        $data->{$attribute->getName()} = $attribute->getValue($node);
+                        $data->{$attribute->getName()} = $value;
                     }
                 }
                 $node = $data;
-            } else {
-                $node = clone $node;
             }
+
             foreach ($node as $name => $value) {
                 if ($schema instanceof ObjectSchema) {
                     $valueSchema = $schema->hasPropertySchema($name)
                         ? $schema->getPropertySchema($name)
                         : $this->anySchema;
                 }
-                $node->$name = $this->dehydrateNode($value, isset($valueSchema) ? $valueSchema : $this->anySchema);
+
+                if (null !== $value) {
+                    $data->$name = $this->dehydrateNode(
+                        $value,
+                        isset($valueSchema) ? $valueSchema : $this->anySchema
+                    );
+                }
             }
 
-            return $node;
+            return $data;
         }
 
         return $node;

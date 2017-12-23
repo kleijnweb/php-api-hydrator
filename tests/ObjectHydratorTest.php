@@ -159,6 +159,11 @@ class ObjectHydratorTest extends TestCase
      */
     public function willOmitNullValues()
     {
+        $this->assertEquals(
+            (object)['foo' => 'a', 'bar'],
+            $this->hydrator->dehydrate((object)['foo' => 'a', 'bar', null], new AnySchema())
+        );
+
         $pet = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), [], (object)[]);
 
         $refl     = new \ReflectionObject($pet);
@@ -169,6 +174,7 @@ class ObjectHydratorTest extends TestCase
         $petSchema = $this->createFullPetSchema();
         $data      = $this->hydrator->dehydrate($pet, $petSchema);
 
+        $this->assertSame(1, $data->id);
         $this->assertObjectNotHasAttribute('name', $data);
     }
 
