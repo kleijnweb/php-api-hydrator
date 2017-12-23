@@ -165,10 +165,9 @@ class ObjectHydrator implements Hydrator
             $node = $this->dateTimeSerializer->serialize($node, $schema);
         } elseif ($this->shouldTreatAsArray($node, $schema)) {
             $node = array_map(function ($value) use ($schema) {
-                return $this->dehydrateNode(
-                    $value,
-                    $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema
-                );
+                $schema = $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema;
+
+                return $this->dehydrateNode($value, $schema);
             }, $node);
         } elseif ($this->shouldTreatAsObject($node, $schema)) {
             $input = $node;

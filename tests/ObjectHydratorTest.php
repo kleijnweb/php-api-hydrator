@@ -252,6 +252,17 @@ class ObjectHydratorTest extends TestCase
     /**
      * @test
      */
+    public function canHydrateCompositesUsingAnySchema()
+    {
+        $this->assertEquals(
+            [(object)['a' => 1]],
+            $this->hydrator->hydrate([(object)['a' => 1]], new AnySchema())
+        );
+    }
+
+    /**
+     * @test
+     */
     public function willApplyDefaultsWhenHydrating()
     {
         $this->dateTimeSerializer
