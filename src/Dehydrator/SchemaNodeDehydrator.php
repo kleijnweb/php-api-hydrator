@@ -31,24 +31,14 @@ class SchemaNodeDehydrator implements SchemaDehydrator
     private $dateTimeSerializer;
 
     /**
-     * NodeDehydrator constructor.
-     * @param DateTimeSerializer|null $dateTimeSerializer
+     * SchemaNodeDehydrator constructor.
+     *
+     * @param DateTimeSerializer  $dateTimeSerializer
      */
-    public function __construct(DateTimeSerializer $dateTimeSerializer = null)
+    public function __construct(DateTimeSerializer $dateTimeSerializer)
     {
         $this->anySchema          = new AnySchema();
-        $this->dateTimeSerializer = $dateTimeSerializer ?: new DateTimeSerializer();
-    }
-
-    /**
-     * @param mixed  $data
-     * @param Schema $schema
-     *
-     * @return mixed
-     */
-    public function dehydrate($data, Schema $schema)
-    {
-        return $this->dehydrateNode($data, $schema);
+        $this->dateTimeSerializer = $dateTimeSerializer;
     }
 
     /**
@@ -57,112 +47,73 @@ class SchemaNodeDehydrator implements SchemaDehydrator
      *
      * @return mixed
      */
-    private function dehydrateNode($node, Schema $schema)
+    public function dehydrate($node, Schema $schema)
     {
         if ($node instanceof \DateTimeInterface) {
-            $node = $this->dateTimeSerializer->serialize($node, $schema);
-
-        } elseif ($this->shouldTreatAsObject($node, $schema)) {
-            $input = $this->isAssociativeArray($node) ? (object)$node : $node;
-            $node  = (object)[];
-
-            $wasTyped = false;
-            if (!$input instanceof \stdClass) {
-                $wasTyped = true;
-                $input = $this->extractValuesFromTypedObject($input);
-            }
-
-            foreach ($input as $name => $value) {
-
-                $valueSchema = $schema instanceof ObjectSchema && $schema->hasPropertySchema($name)
-                    ? $schema->getPropertySchema($name)
-                    : $this->anySchema;
-
-                if ($value === null && !$wasTyped || $this->isAllowedNull($value, $valueSchema)) {
-                    $node->$name = null;
-                    continue;
-                }
-
-                if (null !== $value) {
-                    $node->$name = $this->dehydrateNode(
-                        $value,
-                        $valueSchema
-                    );
-                }
-            }
-
-        } elseif ($this->shouldTreatAsArray($node, $schema)) {
-            $node = array_map(function ($value) use ($schema) {
-                $schema = $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema;
-
-                return $this->dehydrateNode($value, $schema);
-            }, $node);
+            return $this->dehydrateDateTime($node, $schema);
+        } elseif (is_object($node)) {
+            return $this->dehydrateObject($node, $schema);
+        } elseif (is_array($node)) {
+            return $this->dehydrateArray($node, $schema);
         }
 
         return $node;
     }
 
     /**
-     * @param mixed  $node
-     * @param Schema $schema
-     *
-     * @return bool
+     * @param \DateTimeInterface $value
+     * @param Schema             $schema
+     * @return string
      */
-    private function shouldTreatAsObject($node, Schema $schema): bool
+    private function dehydrateDateTime(\DateTimeInterface $value, Schema $schema): string
     {
-        return $schema instanceof ObjectSchema
-            ||
-            $schema instanceof AnySchema && (
-                is_object($node) || $this->isAssociativeArray($node)
-            );
+        return $this->dateTimeSerializer->serialize($value, $schema);
     }
 
     /**
-     * @param mixed  $node
+     * @param array  $array
      * @param Schema $schema
-     *
-     * @return bool
+     * @return array
      */
-    private function shouldTreatAsArray($node, Schema $schema): bool
+    private function dehydrateArray(array $array, Schema $schema): array
     {
-        return $schema instanceof ArraySchema || $schema instanceof AnySchema && is_array($node) && !$this->isAssociativeArray($node);
+        return array_map(function ($value) use ($schema) {
+            $schema = $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema;
+
+            return $this->dehydrate($value, $schema);
+        }, $array);
     }
 
     /**
-     * @param mixed  $node
+     * @param object $input
      * @param Schema $schema
-     *
-     * @return bool
-     */
-    private function isAssociativeArray($node): bool
-    {
-        return is_array($node) && !isset($node[0]);
-    }
-
-    /**
-     * @param mixed  $value
-     * @param Schema $schema
-     * @return bool
-     */
-    private function isAllowedNull($value, Schema $schema): bool
-    {
-        return $value === null && $schema instanceof ScalarSchema && $schema->isType(Schema::TYPE_NULL);
-    }
-
-    /**
-     * @param $node
      * @return \stdClass
      */
-    private function extractValuesFromTypedObject($node): array
+    private function dehydrateObject($input, Schema $schema): \stdClass
     {
-        $reflector  = new \ReflectionObject($node);
-        $properties = $reflector->getProperties();
-        $data       = [];
-        foreach ($properties as $attribute) {
-            $attribute->setAccessible(true);
-            $data[$attribute->getName()] = $attribute->getValue($node);
+        $object = $input instanceof \stdClass ? $input : new ReflectingObjectIterator($input);
+        $node   = (object)[];
+
+        foreach ($object as $name => $value) {
+
+            $valueSchema = $schema instanceof ObjectSchema && $schema->hasPropertySchema($name)
+                ? $schema->getPropertySchema($name)
+                : $this->anySchema;
+
+            if ($value === null) {
+                $isScalarNull = ($valueSchema instanceof ScalarSchema && $valueSchema->isType(Schema::TYPE_NULL));
+                if ($isScalarNull || $input instanceof \stdClass) {
+                    $node->$name = null;
+                    continue;
+                }
+            } else {
+                $node->$name = $this->dehydrate(
+                    $value,
+                    $valueSchema
+                );
+            }
         }
 
-        return $data;
+        return $node;
     }
 }

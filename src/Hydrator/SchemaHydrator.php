@@ -10,16 +10,7 @@ namespace KleijnWeb\PhpApi\Hydrator\Hydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 
-/**
- * @author John Kleijn <john@kleijnweb.nl>
- */
 interface SchemaHydrator
 {
-    /**
-     * @param mixed  $data
-     * @param Schema $schema
-     *
-     * @return mixed
-     */
     public function hydrate($data, Schema $schema);
 }

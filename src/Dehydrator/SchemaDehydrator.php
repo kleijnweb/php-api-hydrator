@@ -5,6 +5,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace KleijnWeb\PhpApi\Hydrator\Dehydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;

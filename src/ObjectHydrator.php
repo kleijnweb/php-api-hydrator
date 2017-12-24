@@ -11,17 +11,19 @@ namespace KleijnWeb\PhpApi\Hydrator;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaNodeDehydrator;
+use KleijnWeb\PhpApi\Hydrator\Hydrator\DefaultCompositeHydrator;
+use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\SchemaHydrator;
-use KleijnWeb\PhpApi\Hydrator\Hydrator\SchemaNodeHydrator;
 
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
+ * @deprecated
  */
-class ObjectHydrator implements Hydrator
+class ObjectHydrator implements \KleijnWeb\PhpApi\Hydrator\Hydrator, SchemaDehydrator, SchemaHydrator
 {
     /**
-     * @var SchemaHydrator
+     * @var Hydrator
      */
     private $nodeHydrator;
 
@@ -35,17 +37,15 @@ class ObjectHydrator implements Hydrator
      *
      * @param ClassNameResolver  $classNameResolver
      * @param DateTimeSerializer $dateTimeSerializer
-     * @param bool               $is32Bit
+     * @param bool               $force32Bit
      */
     public function __construct(
         ClassNameResolver $classNameResolver,
         DateTimeSerializer $dateTimeSerializer = null,
-        $is32Bit = null
+        $force32Bit = false
     ) {
-        $is32Bit              = $is32Bit !== null ? $is32Bit : PHP_INT_SIZE === 4;
-        $dateTimeSerializer   = $dateTimeSerializer ?: new DateTimeSerializer();
         $this->nodeDehydrator = new SchemaNodeDehydrator($dateTimeSerializer);
-        $this->nodeHydrator   = new SchemaNodeHydrator($classNameResolver, $dateTimeSerializer, $is32Bit);
+        $this->nodeHydrator   = new DefaultCompositeHydrator($classNameResolver, $dateTimeSerializer);
     }
 
     /**

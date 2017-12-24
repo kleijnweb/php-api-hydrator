@@ -16,7 +16,7 @@ use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
-use KleijnWeb\PhpApi\Hydrator\Hydrator\SchemaNodeHydrator;
+use KleijnWeb\PhpApi\Hydrator\Hydrator\DefaultCompositeHydrator;
 use KleijnWeb\PhpApi\Hydrator\Tests\TestSchemaFactory;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 class SchemaNodeHydratorTest extends TestCase
 {
     /**
-     * @var SchemaNodeHydrator
+     * @var DefaultCompositeHydrator
      */
     private $hydrator;
 
@@ -51,8 +51,9 @@ class SchemaNodeHydratorTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->classNameResolver = new ClassNameResolver(['KleijnWeb\PhpApi\Hydrator\Tests\Types']);
-        $this->hydrator          = new SchemaNodeHydrator($this->classNameResolver, $dateTimeSerializer);
+        $this->hydrator = new DefaultCompositeHydrator(
+            $this->classNameResolver = new ClassNameResolver(['KleijnWeb\PhpApi\Hydrator\Tests\Types'])
+            , $dateTimeSerializer);
     }
 
     /**
@@ -250,10 +251,10 @@ class SchemaNodeHydratorTest extends TestCase
     {
         $this->expectException(UnsupportedException::class);
 
-        $petSchema = new ScalarSchema((object)['type' => 'integer', 'format' => Schema::FORMAT_INT64]);
+        $schema = new ScalarSchema((object)['type' => 'integer', 'format' => Schema::FORMAT_INT64]);
 
         /** @var DateTimeSerializer $dateTimeSerializer */
-        $hydrator = new SchemaNodeHydrator($this->classNameResolver, $this->dateTimeSerializer, true);
-        $hydrator->hydrate(['id' => 1], $petSchema);
+        $hydrator = new DefaultCompositeHydrator($this->classNameResolver, $this->dateTimeSerializer, true);
+        $hydrator->hydrate(1, $schema);
     }
 }

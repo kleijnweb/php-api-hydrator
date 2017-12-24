@@ -199,25 +199,6 @@ class SchemaNodeDehydratorTest extends TestCase
     /**
      * @test
      */
-    public function willHydrateAssociativeArrayAsObject()
-    {
-        $this->assertEquals(
-            (object)['foo' => 'a', 'bar' => null],
-            $this->hydrator->dehydrate(['foo' => 'a', 'bar' => null], new AnySchema())
-        );
-        $this->assertEquals(
-            (object)['foo' => 'a', 'bar' => 'bah'],
-            $this->hydrator->dehydrate(['foo' => 'a', 'bar' => 'bah'], new AnySchema())
-        );
-        $this->assertEquals(
-            (object)['foo' => [(object)['bah' => 'meh']], 'bar' => 'bah'],
-            $this->hydrator->dehydrate(['foo' => [['bah' => 'meh']], 'bar' => 'bah'], new AnySchema())
-        );
-    }
-
-    /**
-     * @test
-     */
     public function willNotOmitNullTypeValuesOnTypedObjectsWhenDehydrating()
     {
         $object = (object)['aInt' => 1, 'nullProperty' => null];
