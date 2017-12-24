@@ -5,25 +5,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace KleijnWeb\PhpApi\Hydrator;
+namespace KleijnWeb\PhpApi\Hydrator\Dehydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
- * @deprecated Use SchemaHydrator and SchemaDehydrator
  */
-interface Hydrator
+interface SchemaDehydrator
 {
-    /**
-     * @param mixed  $data
-     * @param Schema $schema
-     *
-     * @return mixed
-     */
-    public function hydrate($data, Schema $schema);
-
     /**
      * @param mixed  $data
      * @param Schema $schema

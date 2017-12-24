@@ -6,15 +6,14 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator;
+namespace KleijnWeb\PhpApi\Hydrator\Hydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
- * @deprecated Use SchemaHydrator and SchemaDehydrator
  */
-interface Hydrator
+interface SchemaHydrator
 {
     /**
      * @param mixed  $data
@@ -23,12 +22,4 @@ interface Hydrator
      * @return mixed
      */
     public function hydrate($data, Schema $schema);
-
-    /**
-     * @param mixed  $data
-     * @param Schema $schema
-     *
-     * @return mixed
-     */
-    public function dehydrate($data, Schema $schema);
 }
