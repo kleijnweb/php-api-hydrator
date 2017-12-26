@@ -42,7 +42,7 @@ class ReflectingObjectIterator implements \Iterator
     public function current()
     {
         if (false === $property = current($this->properties)) {
-            throw new \OutOfRangeException();
+            throw new \OutOfBoundsException();
         }
 
         return $property->getValue($this->object);
@@ -68,7 +68,7 @@ class ReflectingObjectIterator implements \Iterator
     public function key()
     {
         if (false === $property = current($this->properties)) {
-            throw new \OutOfRangeException();
+            throw new \OutOfBoundsException();
         }
 
         return $property->getName();

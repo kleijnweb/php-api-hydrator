@@ -9,7 +9,6 @@
 namespace KleijnWeb\PhpApi\Hydrator\Dehydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 
 /**
@@ -21,11 +20,6 @@ abstract class Dehydrator implements SchemaDehydrator
      * @var Dehydrator|null
      */
     protected $parent;
-
-    /**
-     * @var array
-     */
-    protected $bubbleCache = [];
 
     /**
      * @param Dehydrator $parent

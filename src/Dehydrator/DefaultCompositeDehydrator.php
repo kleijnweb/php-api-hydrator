@@ -14,7 +14,7 @@ use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\ArrayDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\CompositeDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\DateTimeDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\ObjectDehydrator;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\ScalarDehydrator;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\FallthroughDehydrator;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
@@ -30,10 +30,10 @@ class DefaultCompositeDehydrator extends CompositeDehydrator
     {
         parent::__construct(
             [
-                new ScalarDehydrator(),
                 new DateTimeDehydrator($dateTimeSerializer),
                 new ObjectDehydrator(),
                 new ArrayDehydrator(),
+                new FallthroughDehydrator(),
             ]
         );
     }

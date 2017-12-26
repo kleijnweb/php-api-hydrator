@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class SchemaNodeDehydratorTest extends TestCase
+class DefaultCompositeDehydratorTest extends TestCase
 {
     /**
      * @var DefaultCompositeDehydrator
@@ -153,69 +153,6 @@ class SchemaNodeDehydratorTest extends TestCase
         $this->assertSame($pet->getTags()[1]->getName(), $petAnonObject->tags[1]->name);
         $this->assertSame($pet->getRating()->value, $petAnonObject->rating->value);
         $this->assertSame($serializedDate, $petAnonObject->rating->created);
-    }
-
-    /**
-     * @test
-     */
-    public function willOmitNullValuesOnTypedObjectsWhenDehydrating()
-    {
-        $pet = new Pet(1, 'Fido', 'single', 123.12, ['/a', '/b'], new Category(2, 'dogs'), [], (object)[]);
-
-        $refl     = new \ReflectionObject($pet);
-        $property = $refl->getProperty('name');
-        $property->setAccessible(true);
-        $property->setValue($pet, null);
-
-        $petSchema = TestSchemaFactory::createFullPetSchema();
-        $data      = $this->hydrator->dehydrate($pet, $petSchema);
-
-        $this->assertSame(1, $data->id);
-        $this->assertObjectNotHasAttribute('name', $data);
-    }
-
-    /**
-     * @test
-     */
-    public function willNotOmitNullValuesOnUnTypedObjectsWhenDehydrating()
-    {
-        $object = (object)['aInt' => 1, 'nullProperty' => null];
-        $schema = new ObjectSchema((object)[], (object)[
-            'aInt'         => new ScalarSchema((object)[
-                'type' => ScalarSchema::TYPE_INT,
-            ]),
-            'nullProperty' => new ScalarSchema((object)[
-                'type' => ScalarSchema::TYPE_INT,
-            ]),
-        ]);
-
-        $data = $this->hydrator->dehydrate($object, $schema);
-
-        $this->assertSame(1, $data->aInt);
-        $this->assertObjectHasAttribute('nullProperty', $data);
-        $this->assertNull($data->nullProperty);
-    }
-
-    /**
-     * @test
-     */
-    public function willNotOmitNullTypeValuesOnTypedObjectsWhenDehydrating()
-    {
-        $object = (object)['aInt' => 1, 'nullProperty' => null];
-        $schema = new ObjectSchema((object)[], (object)[
-            'aInt'         => new ScalarSchema((object)[
-                'type' => ScalarSchema::TYPE_INT,
-            ]),
-            'nullProperty' => new ScalarSchema((object)[
-                'type' => ScalarSchema::TYPE_NULL,
-            ]),
-        ]);
-
-        $data = $this->hydrator->dehydrate($object, $schema);
-
-        $this->assertSame(1, $data->aInt);
-        $this->assertObjectHasAttribute('nullProperty', $data);
-        $this->assertNull($data->nullProperty);
     }
 
     private function forceProperty($object, $propertyName, $value)

@@ -13,7 +13,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrator;
 
-class ScalarDehydrator extends Dehydrator
+class FallthroughDehydrator extends Dehydrator
 {
     /**
      * Cast a scalar value using the schema.
@@ -36,6 +36,6 @@ class ScalarDehydrator extends Dehydrator
      */
     public function supports($data, Schema $schema): bool
     {
-        return is_scalar($data);
+        return true;
     }
 }

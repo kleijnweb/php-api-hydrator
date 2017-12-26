@@ -12,7 +12,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\ReflectingObjectIterator;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\ComplexObjectIteratorFactory;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrator;
 
 class ObjectDehydrator extends Dehydrator
@@ -23,11 +23,18 @@ class ObjectDehydrator extends Dehydrator
     private $anySchema;
 
     /**
-     * SimpleObjectHydrator constructor.
+     * @var ComplexObjectIteratorFactory
      */
-    public function __construct()
+    private $iteratorFactory;
+
+    /**
+     * ObjectDehydrator constructor.
+     * @param ComplexObjectIteratorFactory $iteratorFactory
+     */
+    public function __construct(ComplexObjectIteratorFactory $iteratorFactory = null)
     {
-        $this->anySchema = new AnySchema();
+        $this->anySchema       = new AnySchema();
+        $this->iteratorFactory = $iteratorFactory ?: new ComplexObjectIteratorFactory();
     }
 
     /**
@@ -43,16 +50,16 @@ class ObjectDehydrator extends Dehydrator
 
 
     /**
-     * @param object $input
+     * @param object $object
      * @param Schema $schema
      * @return \stdClass
      */
-    private function dehydrateObject($input, Schema $schema): \stdClass
+    private function dehydrateObject($object, Schema $schema): \stdClass
     {
-        $object = $input instanceof \stdClass ? $input : new ReflectingObjectIterator($input);
-        $node   = (object)[];
+        $iterable = $object instanceof \stdClass ? $object : $this->iteratorFactory->create($object);
+        $node     = (object)[];
 
-        foreach ($object as $name => $value) {
+        foreach ($iterable as $name => $value) {
 
             $valueSchema = $schema instanceof ObjectSchema && $schema->hasPropertySchema($name)
                 ? $schema->getPropertySchema($name)
@@ -60,7 +67,7 @@ class ObjectDehydrator extends Dehydrator
 
             if ($value === null) {
                 $isScalarNull = ($valueSchema instanceof ScalarSchema && $valueSchema->isType(Schema::TYPE_NULL));
-                if ($isScalarNull || $input instanceof \stdClass) {
+                if ($isScalarNull || $object instanceof \stdClass) {
                     $node->$name = null;
                     continue;
                 }
