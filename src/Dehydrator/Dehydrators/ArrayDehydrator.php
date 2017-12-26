@@ -6,15 +6,14 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators;
-
+namespace KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
-use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrator;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrator;
 
-class ArrayHydrator extends Hydrator
+class ArrayDehydrator extends Dehydrator
 {
     /**
      * @var AnySchema
@@ -34,24 +33,23 @@ class ArrayHydrator extends Hydrator
      * @param Schema $schema
      * @return array
      */
-    public function hydrate($node, Schema $schema)
+    public function dehydrate($node, Schema $schema)
     {
-        return $this->hydrateArray($node, $schema);
+        return $this->dehydrateArray($node, $schema);
     }
 
-    /**sz
-     * @param mixed  $node
+    /**
+     * @param array  $array
      * @param Schema $schema
      * @return array
      */
-    private function hydrateArray(array $node, Schema $schema): array
+    private function dehydrateArray(array $array, Schema $schema): array
     {
         return array_map(function ($value) use ($schema) {
-            return $this->bubble(
-                $value,
-                $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema
-            );
-        }, $node);
+            $schema = $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema;
+
+            return $this->bubble($value, $schema);
+        }, $array);
     }
 
     /**

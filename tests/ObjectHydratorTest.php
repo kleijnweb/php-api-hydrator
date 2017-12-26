@@ -56,22 +56,22 @@ class ObjectHydratorTest extends TestCase
         $petSchema = TestSchemaFactory::createFullPetSchema();
 
         $input = (object)[
-            'id'        => '1',
+            'id'        => 1,
             'name'      => 'Fido',
             'status'    => 'single',
             'x'         => 'y',
             'photoUrls' => ['/a', '/b'],
-            'price'     => '100.25',
+            'price'     => 100.25,
             'category'  => (object)[
                 'id'   => '1',
                 'name' => 'Shepherd',
             ],
             'tags'      => [
-                (object)['id' => '1', 'name' => 1],
-                (object)['id' => '2', 'name' => 2],
+                (object)['id' => 1, 'name' => '1'],
+                (object)['id' => 2, 'name' => '2'],
             ],
             'rating'    => (object)[
-                'value'   => '10',
+                'value'   => 10,
                 'created' => '2016-01-01',
             ],
         ];
@@ -88,6 +88,7 @@ class ObjectHydratorTest extends TestCase
 
         // Making sure the input is unaffected
         $this->assertInternalType('string', $input->rating->created);
+        $this->assertInternalType('int', $input->rating->value);
 
         $this->assertInstanceOf(Pet::class, $pet);
         $this->assertInstanceOf(Category::class, $pet->getCategory());

@@ -51,9 +51,8 @@ class ScalarHydrator extends Hydrator
      */
     public function hydrate($value, Schema $schema)
     {
-        if ($schema->isType(Schema::TYPE_NUMBER) || is_numeric($value) && $schema instanceof AnySchema) {
-            return ctype_digit($value) ? (int)$value : (float)$value;
-        } elseif ($schema instanceof ScalarSchema) {
+        if ($schema instanceof ScalarSchema) {
+
             if ($schema->isType(Schema::TYPE_INT)) {
                 if ($this->is32Bit && $schema->hasFormat(Schema::FORMAT_INT64)) {
                     throw new UnsupportedException("Operating system does not support 64 bit integers");
@@ -62,10 +61,15 @@ class ScalarHydrator extends Hydrator
                 return (int)$value;
             } elseif ($schema->isDateTime()) {
                 return $this->dateTimeSerializer->deserialize($value, $schema);
+            } elseif ($schema->isPrimitive(Schema::TYPE_NUMBER)) {
+                return $this->castNumber($value);
             }
 
             settype($value, $schema->getType());
         } elseif ($schema instanceof AnySchema) {
+            if (is_numeric($value)) {
+                return $this->castNumber($value);
+            }
             try {
                 $value = $this->dateTimeSerializer->deserialize($value, $schema);
             } catch (\Throwable $e) {
@@ -84,5 +88,18 @@ class ScalarHydrator extends Hydrator
     public function supports($data, Schema $schema): bool
     {
         return is_scalar($data);
+    }
+
+    /**
+     * @param mixed $value
+     * @return float|int
+     */
+    private function castNumber($value)
+    {
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        return !ctype_digit($value) ? (float)$value : (int)$value;
     }
 }

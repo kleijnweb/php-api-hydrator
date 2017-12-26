@@ -10,7 +10,7 @@ namespace KleijnWeb\PhpApi\Hydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaDehydrator;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaNodeDehydrator;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\DefaultCompositeDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\DefaultCompositeHydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\SchemaHydrator;
@@ -44,7 +44,7 @@ class ObjectHydrator implements \KleijnWeb\PhpApi\Hydrator\Hydrator, SchemaDehyd
         DateTimeSerializer $dateTimeSerializer = null,
         $force32Bit = false
     ) {
-        $this->nodeDehydrator = new SchemaNodeDehydrator($dateTimeSerializer);
+        $this->nodeDehydrator = new DefaultCompositeDehydrator($dateTimeSerializer);
         $this->nodeHydrator   = new DefaultCompositeHydrator($classNameResolver, $dateTimeSerializer);
     }
 

@@ -6,27 +6,32 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator\Hydrator;
+namespace KleijnWeb\PhpApi\Hydrator\Dehydrator;
 
-use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-abstract class Hydrator implements SchemaHydrator
+abstract class Dehydrator implements SchemaDehydrator
 {
     /**
-     * @var Hydrator|null
+     * @var Dehydrator|null
      */
     protected $parent;
 
     /**
-     * @param Hydrator $parent
-     * @return Hydrator
+     * @var array
      */
-    public function setParent(Hydrator $parent): Hydrator
+    protected $bubbleCache = [];
+
+    /**
+     * @param Dehydrator $parent
+     * @return Dehydrator
+     */
+    public function setParent(Dehydrator $parent): Dehydrator
     {
         $this->parent = $parent;
 
@@ -47,7 +52,7 @@ abstract class Hydrator implements SchemaHydrator
             return $this->parent->bubble($data, $schema);
         }
 
-        return $this->parent->hydrate($data, $schema);
+        return $this->parent->dehydrate($data, $schema);
     }
 
     /**
@@ -56,24 +61,4 @@ abstract class Hydrator implements SchemaHydrator
      * @return bool
      */
     abstract public function supports($data, Schema $schema): bool;
-
-    /**
-     * @param mixed  $node
-     * @param Schema $schema
-     *
-     * @return mixed
-     */
-    protected function applyDefaults($node, Schema $schema)
-    {
-        if ($node instanceof \stdClass && $schema instanceof ObjectSchema) {
-            /** @var Schema $propertySchema */
-            foreach ($schema->getPropertySchemas() as $name => $propertySchema) {
-                if (!isset($node->$name) && null !== $default = $propertySchema->getDefault()) {
-                    $node->$name = $default;
-                }
-            }
-        }
-
-        return $node === null ? $schema->getDefault() : $node;
-    }
 }

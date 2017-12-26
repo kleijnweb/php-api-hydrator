@@ -200,52 +200,6 @@ class SchemaNodeHydratorTest extends TestCase
 
     /**
      * @test
-     * @group perf
-     */
-    public function canHydrateLargeArray()
-    {
-        $start = microtime(true);
-
-        $size = 10000;
-        $this->dateTimeSerializer
-            ->expects($this->any())
-            ->method('deserialize')
-            ->willReturnCallback(function ($value) {
-                return new\DateTime($value);
-            });
-
-        $input = [];
-
-        for ($i = 0; $i < $size; ++$i) {
-            $input[] = (object)[
-                'id'        => (string)rand(),
-                'name'      => (string)rand(),
-                'status'    => (string)rand(),
-                'x'         => 'y',
-                'photoUrls' => [' / ' . (string)rand(), ' / ' . (string)rand()],
-                'price'     => (string)rand() . '.25',
-                'category'  => (object)[
-                    'name' => 'Shepherd',
-                ],
-                'tags'      => [
-                    (object)['name' => (string)rand()],
-                    (object)['name' => (string)rand()],
-                ],
-                'rating'    => (object)[
-                    'value'   => '10',
-                    'created' => '2016-01-01',
-                ],
-            ];
-        }
-        $this->hydrator->hydrate($input, new ArraySchema((object)[], TestSchemaFactory::createFullPetSchema()));
-
-        // Just making sure future changes don't introduce crippling performance issues .
-        // This runs in under 2s on my old W3570. Travis does it in about 3.7s at the time of writing.
-        $this->assertLessThan(5, microtime(true) - $start);
-    }
-
-    /**
-     * @test
      */
     public function willThrowExceptionIfTryingToHydrateInt64On32BitOs()
     {

@@ -18,6 +18,11 @@ class ClassNameResolver
     private $resourceNamespaces = [];
 
     /**
+     * @var array
+     */
+    private $cache = [];
+
+    /**
      * ClassNameResolver constructor.
      *
      * @param array $resourceNamespaces
@@ -34,15 +39,20 @@ class ClassNameResolver
      */
     public function resolve(string $typeName): string
     {
-        foreach ($this->resourceNamespaces as $resourceNamespace) {
-            if (class_exists($fqcn = $this->qualify($resourceNamespace, $typeName))) {
-                return $fqcn;
+        if (!isset($this->cache[$typeName])) {
+            foreach ($this->resourceNamespaces as $resourceNamespace) {
+                if (class_exists($this->cache[$typeName] = $this->qualify($resourceNamespace, $typeName))) {
+                    return $this->cache[$typeName];
+                }
             }
+
+            throw new ClassNotFoundException(
+                sprintf("Did not find type '%s' in namespace(s) '%s'.", $typeName,
+                    implode(', ', $this->resourceNamespaces))
+            );
         }
 
-        throw new ClassNotFoundException(
-            sprintf("Did not find type '%s' in namespace(s) '%s'.", $typeName, implode(', ', $this->resourceNamespaces))
-        );
+        return $this->cache[$typeName];
     }
 
     /**

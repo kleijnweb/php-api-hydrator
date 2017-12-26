@@ -6,19 +6,16 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator\Dehydrator;
+namespace KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
-use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
-use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\ReflectingObjectIterator;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrator;
 
-/**
- * @author John Kleijn <john@kleijnweb.nl>
- */
-class SchemaNodeDehydrator implements SchemaDehydrator
+class ObjectDehydrator extends Dehydrator
 {
     /**
      * @var AnySchema
@@ -26,19 +23,11 @@ class SchemaNodeDehydrator implements SchemaDehydrator
     private $anySchema;
 
     /**
-     * @var DateTimeSerializer
+     * SimpleObjectHydrator constructor.
      */
-    private $dateTimeSerializer;
-
-    /**
-     * SchemaNodeDehydrator constructor.
-     *
-     * @param DateTimeSerializer  $dateTimeSerializer
-     */
-    public function __construct(DateTimeSerializer $dateTimeSerializer)
+    public function __construct()
     {
-        $this->anySchema          = new AnySchema();
-        $this->dateTimeSerializer = $dateTimeSerializer;
+        $this->anySchema = new AnySchema();
     }
 
     /**
@@ -49,40 +38,9 @@ class SchemaNodeDehydrator implements SchemaDehydrator
      */
     public function dehydrate($node, Schema $schema)
     {
-        if ($node instanceof \DateTimeInterface) {
-            return $this->dehydrateDateTime($node, $schema);
-        } elseif (is_object($node)) {
-            return $this->dehydrateObject($node, $schema);
-        } elseif (is_array($node)) {
-            return $this->dehydrateArray($node, $schema);
-        }
-
-        return $node;
+        return $this->dehydrateObject($node, $schema);
     }
 
-    /**
-     * @param \DateTimeInterface $value
-     * @param Schema             $schema
-     * @return string
-     */
-    private function dehydrateDateTime(\DateTimeInterface $value, Schema $schema): string
-    {
-        return $this->dateTimeSerializer->serialize($value, $schema);
-    }
-
-    /**
-     * @param array  $array
-     * @param Schema $schema
-     * @return array
-     */
-    private function dehydrateArray(array $array, Schema $schema): array
-    {
-        return array_map(function ($value) use ($schema) {
-            $schema = $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema;
-
-            return $this->dehydrate($value, $schema);
-        }, $array);
-    }
 
     /**
      * @param object $input
@@ -107,7 +65,7 @@ class SchemaNodeDehydrator implements SchemaDehydrator
                     continue;
                 }
             } else {
-                $node->$name = $this->dehydrate(
+                $node->$name = $this->bubble(
                     $value,
                     $valueSchema
                 );
@@ -115,5 +73,15 @@ class SchemaNodeDehydrator implements SchemaDehydrator
         }
 
         return $node;
+    }
+
+    /**
+     * @param mixed  $data
+     * @param Schema $schema
+     * @return bool
+     */
+    public function supports($data, Schema $schema): bool
+    {
+        return is_object($data);
     }
 }

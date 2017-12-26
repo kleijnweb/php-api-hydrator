@@ -8,6 +8,7 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Hydrator;
 
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\ArrayHydrator;
@@ -34,13 +35,19 @@ class DefaultCompositeHydrator extends CompositeHydrator
     ) {
         parent::__construct(
             [
-                new ScalarHydrator($dateTimeSerializer, $force32Bit),
+                new ScalarHydrator(
+                    $dateTimeSerializer ?: new DateTimeSerializer(),
+                    $force32Bit
+                ),
+                new ComplexTypeObjectHydrator($classNameResolver),
+                new SimpleObjectHydrator(),
                 new ArrayHydrator(),
-                new CompositeHydrator([
-                    new ComplexTypeObjectHydrator($classNameResolver),
-                    new SimpleObjectHydrator(),
-                ]),
             ]
         );
+    }
+
+    public function supports($data, Schema $schema): bool
+    {
+        return true;
     }
 }

@@ -13,7 +13,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\SchemaNodeDehydrator;
+use KleijnWeb\PhpApi\Hydrator\Dehydrator\DefaultCompositeDehydrator;
 use KleijnWeb\PhpApi\Hydrator\Tests\TestSchemaFactory;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 class SchemaNodeDehydratorTest extends TestCase
 {
     /**
-     * @var SchemaNodeDehydrator
+     * @var DefaultCompositeDehydrator
      */
     private $hydrator;
 
@@ -49,7 +49,7 @@ class SchemaNodeDehydratorTest extends TestCase
             ->getMock();
 
         $this->classNameResolver = new ClassNameResolver([__NAMESPACE__ . '\\Types']);
-        $this->hydrator          = new SchemaNodeDehydrator($dateTimeSerializer);
+        $this->hydrator          = new DefaultCompositeDehydrator($dateTimeSerializer);
     }
 
     /**
