@@ -259,7 +259,7 @@ class ObjectDehydratorTest extends TestCase
         $property->setAccessible(true);
         $property->setValue($pet, null);
 
-        $petSchema = TestSchemaFactory::createFullPetSchema();
+        $petSchema = TestSchemaFactory::createPetSchema();
         $data      = $this->dehydrator->dehydrate($pet, $petSchema);
 
         $this->assertSame(1, $data->id);

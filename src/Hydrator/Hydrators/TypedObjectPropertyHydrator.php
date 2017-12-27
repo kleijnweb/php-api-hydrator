@@ -15,7 +15,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrator;
 
-class ComplexTypeObjectHydrator extends Hydrator
+class TypedObjectPropertyHydrator extends Hydrator
 {
     /**
      * @var AnySchema

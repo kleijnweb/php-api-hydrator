@@ -53,7 +53,7 @@ class ObjectHydratorTest extends TestCase
      */
     public function canRoundTrip()
     {
-        $petSchema = TestSchemaFactory::createFullPetSchema();
+        $petSchema = TestSchemaFactory::createPetSchema();
 
         $input = (object)[
             'id'        => 1,

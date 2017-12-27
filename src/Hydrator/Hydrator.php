@@ -40,14 +40,15 @@ abstract class Hydrator implements SchemaHydrator
      */
     public function bubble($data, Schema $schema)
     {
-        if (!$this->parent) {
-            throw new UnsupportedException("Cannot bubble, no parent");
-        }
-        if (!$this->parent->supports($data, $schema)) {
-            return $this->parent->bubble($data, $schema);
+        if ($this->supports($data, $schema)) {
+            return $this->hydrate($data, $schema);
         }
 
-        return $this->parent->hydrate($data, $schema);
+        if (!$this->parent) {
+            throw new UnsupportedException("Cannot bubble up, no parent");
+        }
+
+        return $this->parent->bubble($data, $schema);
     }
 
     /**

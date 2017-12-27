@@ -21,12 +21,9 @@ class TestSchemaFactory
     /**
      * @return ObjectSchema
      */
-    public static function createFullPetSchema(): ObjectSchema
+    public static function createPetSchema(): ObjectSchema
     {
-        $tagSchema = new ObjectSchema((object)[], (object)[
-            'name' => new ScalarSchema((object)['type' => 'string']),
-        ]);
-        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
+        $tagSchema      = self::createTagSchema();
         $categorySchema = new ObjectSchema((object)[], (object)[]);
         $categorySchema->setComplexType(new ComplexType('Category', $categorySchema));
         $petSchema = new ObjectSchema(
@@ -50,5 +47,18 @@ class TestSchemaFactory
         $petSchema->setComplexType(new ComplexType('Pet', $petSchema));
 
         return $petSchema;
+    }
+
+    /**
+     * @return ObjectSchema
+     */
+    public static function createTagSchema(): ObjectSchema
+    {
+        $tagSchema = new ObjectSchema((object)[], (object)[
+            'name' => new ScalarSchema((object)['type' => 'string']),
+        ]);
+        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
+
+        return $tagSchema;
     }
 }

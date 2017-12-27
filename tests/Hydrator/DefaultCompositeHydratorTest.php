@@ -9,12 +9,10 @@
 namespace KleijnWeb\PhpApi\Hydrator\Tests\Hydrator;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
-use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
-use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\DefaultCompositeHydrator;
 use KleijnWeb\PhpApi\Hydrator\Tests\TestSchemaFactory;
@@ -52,8 +50,9 @@ class DefaultCompositeHydratorTest extends TestCase
             ->getMock();
 
         $this->hydrator = new DefaultCompositeHydrator(
-            $this->classNameResolver = new ClassNameResolver(['KleijnWeb\PhpApi\Hydrator\Tests\Types'])
-            , $dateTimeSerializer);
+            $this->classNameResolver = new ClassNameResolver(['KleijnWeb\PhpApi\Hydrator\Tests\Types']),
+            $dateTimeSerializer
+        );
     }
 
     /**
@@ -61,7 +60,7 @@ class DefaultCompositeHydratorTest extends TestCase
      */
     public function canHydratePet()
     {
-        $petSchema = TestSchemaFactory::createFullPetSchema();
+        $petSchema = TestSchemaFactory::createPetSchema();
 
         $input = (object)[
             'id'        => '1',
@@ -113,22 +112,6 @@ class DefaultCompositeHydratorTest extends TestCase
     /**
      * @test
      */
-    public function canHydrateStringUsingAnySchema()
-    {
-        $this->dateTimeSerializer
-            ->expects($this->once())
-            ->method('deserialize')
-            ->willThrowException(new DateTimeNotParsableException());
-
-        $this->assertEquals(
-            'something',
-            $this->hydrator->hydrate('something', new AnySchema())
-        );
-    }
-
-    /**
-     * @test
-     */
     public function canHydrateDateTimeUsingAnySchema()
     {
         $this->dateTimeSerializer
@@ -145,22 +128,7 @@ class DefaultCompositeHydratorTest extends TestCase
     /**
      * @test
      */
-    public function canHydrateNumbersUsingAnySchema()
-    {
-        $this->assertSame(
-            2017,
-            $this->hydrator->hydrate('2017', new AnySchema())
-        );
-        $this->assertSame(
-            1.5,
-            $this->hydrator->hydrate('1.5', new AnySchema())
-        );
-    }
-
-    /**
-     * @test
-     */
-    public function canHydrateCompositesUsingAnySchema()
+    public function canHydrateRecursivelyUsingAnySchema()
     {
         $this->assertEquals(
             [(object)['a' => 1]],
@@ -186,7 +154,7 @@ class DefaultCompositeHydratorTest extends TestCase
                 'name'   => 'Fido',
                 'rating' => (object)['value' => '10'],
             ],
-            TestSchemaFactory::createFullPetSchema()
+            TestSchemaFactory::createPetSchema()
         );
 
         $this->assertInstanceOf(Pet::class, $actual);

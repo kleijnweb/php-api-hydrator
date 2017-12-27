@@ -41,6 +41,33 @@ class SimpleObjectHydratorTest extends TestCase
     /**
      * @test
      */
+    public function canHydrateUsingAnySchema()
+    {
+        /** @var Hydrator $parent */
+        $parent = $stubHydrator = $this->getMockBuilder(Hydrator::class)->getMockForAbstractClass();
+        $stubHydrator
+            ->expects($this->any())
+            ->method('supports')
+            ->willReturn(true);
+
+        $stubHydrator
+            ->expects($this->any())
+            ->method('hydrate')
+            ->willReturnCallback(function ($value) {
+                return $value;
+            });
+
+        $this->hydrator->setParent($parent);
+
+        $this->assertEquals(
+            (object)['a' => 1],
+            $this->hydrator->hydrate((object)['a' => 1], new AnySchema())
+        );
+    }
+
+    /**
+     * @test
+     */
     public function willBubbleValues()
     {
         /** @var Hydrator $parent */

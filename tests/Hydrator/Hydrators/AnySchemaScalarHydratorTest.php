@@ -10,8 +10,9 @@ namespace KleijnWeb\PhpApi\Hydrator\Tests\Hydrator\Hydrators;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
-use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
+use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\ScalarHydrator;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class AnySchemaScalarHydratorTest extends TestCase
@@ -21,9 +22,19 @@ class AnySchemaScalarHydratorTest extends TestCase
      */
     private $hydrator;
 
+    /**
+     * @var MockObject
+     */
+    private $dateTimeSerializer;
+
     protected function setUp()
     {
-        $this->hydrator = new ScalarHydrator(new DateTimeSerializer());
+        /** @var DateTimeSerializer $serializer */
+        $serializer = $this->dateTimeSerializer = $this->getMockBuilder(DateTimeSerializer::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->hydrator = new ScalarHydrator($serializer);
     }
 
     /**
@@ -31,6 +42,11 @@ class AnySchemaScalarHydratorTest extends TestCase
      */
     public function willPassThroughStringsWhenUsingAnySchema()
     {
+        $this->dateTimeSerializer
+            ->expects($this->once())
+            ->method('deserialize')
+            ->willThrowException(new DateTimeNotParsableException());
+
         $this->assertSame('foo', $this->hydrator->hydrate('foo', new AnySchema()));
     }
 
@@ -54,13 +70,17 @@ class AnySchemaScalarHydratorTest extends TestCase
         $this->assertSame($actual, 1);
     }
 
+
     /**
      * @test
      */
     public function willDeserializeDateTime()
     {
-        $actual = $this->hydrator->hydrate('2017-12-01', new AnySchema());
-        $this->assertInstanceOf(\DateTime::class, $actual);
-        $this->assertSame('2017-12-01', $actual->format('Y-m-d'));
+        $this->dateTimeSerializer
+            ->expects($this->once())
+            ->method('deserialize')
+            ->willReturn($dateTime = new \DateTime());
+
+        $this->assertSame($dateTime, $this->hydrator->hydrate('2017-12-01', new AnySchema()));
     }
 }

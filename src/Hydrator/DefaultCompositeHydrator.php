@@ -12,7 +12,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\ClassNameResolver;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\ArrayHydrator;
-use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\ComplexTypeObjectHydrator;
+use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\TypedObjectPropertyHydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\CompositeHydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\ScalarHydrator;
 use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\SimpleObjectHydrator;
@@ -39,7 +39,7 @@ class DefaultCompositeHydrator extends CompositeHydrator
                     $dateTimeSerializer ?: new DateTimeSerializer(),
                     $force32Bit
                 ),
-                new ComplexTypeObjectHydrator($classNameResolver),
+                new TypedObjectPropertyHydrator($classNameResolver),
                 new SimpleObjectHydrator(),
                 new ArrayHydrator(),
             ]

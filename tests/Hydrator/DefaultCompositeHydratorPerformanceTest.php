@@ -63,7 +63,7 @@ class DefaultCompositeHydratorPerformanceTest extends TestCase
             ];
         }
 
-        $schema = new ArraySchema((object)[], TestSchemaFactory::createFullPetSchema());
+        $schema = new ArraySchema((object)[], TestSchemaFactory::createPetSchema());
 
         $start = microtime(true);
         $this->hydrator->hydrate($input, $schema);

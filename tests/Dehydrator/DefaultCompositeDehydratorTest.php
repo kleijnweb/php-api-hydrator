@@ -57,7 +57,7 @@ class DefaultCompositeDehydratorTest extends TestCase
      */
     public function canDehydratePet()
     {
-        $petSchema = TestSchemaFactory::createFullPetSchema();
+        $petSchema = TestSchemaFactory::createPetSchema();
 
         $expected = (object)[
             'id'        => 1,
