@@ -72,10 +72,7 @@ class ObjectDehydrator extends Dehydrator
                     continue;
                 }
             } else {
-                $node->$name = $this->bubble(
-                    $value,
-                    $valueSchema
-                );
+                $node->$name = $this->bubble($value, $valueSchema);
             }
         }
 

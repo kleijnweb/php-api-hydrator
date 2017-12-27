@@ -46,11 +46,10 @@ class ArrayHydrator extends Hydrator
      */
     private function hydrateArray(array $node, Schema $schema): array
     {
-        return array_map(function ($value) use ($schema) {
-            return $this->bubble(
-                $value,
-                $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema
-            );
+        $itemsSchema = $schema instanceof ArraySchema ? $schema->getItemsSchema() : $this->anySchema;
+
+        return array_map(function ($value) use ($itemsSchema) {
+            return $this->bubble($value, $itemsSchema);
         }, $node);
     }
 

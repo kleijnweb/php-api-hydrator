@@ -6,26 +6,26 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator\Tests\Dehydrator\Dehydrators;
+namespace KleijnWeb\PhpApi\Hydrator\Tests\Hydrator\Hydrators;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrator;
-use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\CompositeDehydrator;
+use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrator;
+use KleijnWeb\PhpApi\Hydrator\Hydrator\Hydrators\CompositeHydrator;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use PHPUnit\Framework\TestCase;
 
-class CompositeDehydratorTest extends TestCase
+class CompositeHydratorTest extends TestCase
 {
     /**
      * @test
      */
     public function addingChildSetsParent()
     {
-        $composite = new CompositeDehydrator();
+        $composite = new CompositeHydrator();
 
-        /** @var Dehydrator $child */
-        $child = $mockChild = $this->getMockBuilder(Dehydrator::class)->getMock();
+        /** @var Hydrator $child */
+        $child = $mockChild = $this->getMockBuilder(Hydrator::class)->getMock();
 
         $mockChild
             ->expects($this->once())
@@ -40,12 +40,12 @@ class CompositeDehydratorTest extends TestCase
      */
     public function supportMatchesOnFirstChild()
     {
-        /** @var Dehydrator $child1 */
-        $child1 = $mockChild1 = $this->getMockBuilder(Dehydrator::class)->getMock();
-        /** @var Dehydrator $child2 */
-        $child2 = $mockChild2 = $this->getMockBuilder(Dehydrator::class)->getMock();
-        /** @var Dehydrator $child3 */
-        $child3 = $mockChild3 = $this->getMockBuilder(Dehydrator::class)->getMock();
+        /** @var Hydrator $child1 */
+        $child1 = $mockChild1 = $this->getMockBuilder(Hydrator::class)->getMock();
+        /** @var Hydrator $child2 */
+        $child2 = $mockChild2 = $this->getMockBuilder(Hydrator::class)->getMock();
+        /** @var Hydrator $child3 */
+        $child3 = $mockChild3 = $this->getMockBuilder(Hydrator::class)->getMock();
 
         $mockChild1
             ->expects($this->once())
@@ -60,7 +60,7 @@ class CompositeDehydratorTest extends TestCase
             ->expects($this->never())
             ->method('supports');
 
-        $composite = new CompositeDehydrator([$child1, $child2, $child3]);
+        $composite = new CompositeHydrator([$child1, $child2, $child3]);
         $composite->supports(true, new AnySchema());
     }
 
@@ -69,12 +69,12 @@ class CompositeDehydratorTest extends TestCase
      */
     public function hydrateWillFailWhenNoChildrenSupportArguments()
     {
-        /** @var Dehydrator $child1 */
-        $child1 = $mockChild1 = $this->getMockBuilder(Dehydrator::class)->getMock();
-        /** @var Dehydrator $child2 */
-        $child2 = $mockChild2 = $this->getMockBuilder(Dehydrator::class)->getMock();
-        /** @var Dehydrator $child3 */
-        $child3 = $mockChild3 = $this->getMockBuilder(Dehydrator::class)->getMock();
+        /** @var Hydrator $child1 */
+        $child1 = $mockChild1 = $this->getMockBuilder(Hydrator::class)->getMock();
+        /** @var Hydrator $child2 */
+        $child2 = $mockChild2 = $this->getMockBuilder(Hydrator::class)->getMock();
+        /** @var Hydrator $child3 */
+        $child3 = $mockChild3 = $this->getMockBuilder(Hydrator::class)->getMock();
 
         $mockChild1
             ->expects($this->once())
@@ -90,10 +90,10 @@ class CompositeDehydratorTest extends TestCase
             ->method('supports')
             ->willReturn(false);
 
-        $composite = new CompositeDehydrator([$child1, $child2, $child3]);
+        $composite = new CompositeHydrator([$child1, $child2, $child3]);
 
         $this->expectException(UnsupportedException::class);
-        $composite->dehydrate(true, new AnySchema());
+        $composite->hydrate(true, new AnySchema());
     }
 
     /**
@@ -101,12 +101,12 @@ class CompositeDehydratorTest extends TestCase
      */
     public function willHydrateOnFirstChildThatSupportsValueAndSchema()
     {
-        /** @var Dehydrator $child1 */
-        $child1 = $mockChild1 = $this->getMockBuilder(Dehydrator::class)->getMock();
-        /** @var Dehydrator $child2 */
-        $child2 = $mockChild2 = $this->getMockBuilder(Dehydrator::class)->getMock();
-        /** @var Dehydrator $child3 */
-        $child3 = $mockChild3 = $this->getMockBuilder(Dehydrator::class)->getMock();
+        /** @var Hydrator $child1 */
+        $child1 = $mockChild1 = $this->getMockBuilder(Hydrator::class)->getMock();
+        /** @var Hydrator $child2 */
+        $child2 = $mockChild2 = $this->getMockBuilder(Hydrator::class)->getMock();
+        /** @var Hydrator $child3 */
+        $child3 = $mockChild3 = $this->getMockBuilder(Hydrator::class)->getMock();
 
         $value  = (object)[];
         $schema = new ObjectSchema((object)[], (object)[]);
@@ -125,7 +125,7 @@ class CompositeDehydratorTest extends TestCase
 
         $mockChild2
             ->expects($this->once())
-            ->method('dehydrate')
+            ->method('hydrate')
             ->with($value, $schema);
 
         $mockChild3
@@ -134,9 +134,9 @@ class CompositeDehydratorTest extends TestCase
 
         $mockChild3
             ->expects($this->never())
-            ->method('dehydrate');
+            ->method('hydrate');
 
-        $composite = new CompositeDehydrator([$child1, $child2, $child3]);
-        $composite->dehydrate($value, $schema);
+        $composite = new CompositeHydrator([$child1, $child2, $child3]);
+        $composite->hydrate($value, $schema);
     }
 }

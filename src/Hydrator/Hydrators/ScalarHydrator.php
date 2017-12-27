@@ -54,7 +54,7 @@ class ScalarHydrator extends Hydrator
         if ($schema instanceof ScalarSchema) {
 
             if ($schema->isType(Schema::TYPE_INT)) {
-                if ($this->is32Bit && $schema->hasFormat(Schema::FORMAT_INT64)) {
+                if ($this->is32Bit && ($schema->hasFormat(Schema::FORMAT_INT64) || $value > (float)PHP_INT_MAX)) {
                     throw new UnsupportedException("Operating system does not support 64 bit integers");
                 }
 

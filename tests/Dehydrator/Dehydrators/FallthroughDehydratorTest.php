@@ -13,7 +13,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Hydrator\Dehydrator\Dehydrators\FallthroughDehydrator;
 use PHPUnit\Framework\TestCase;
 
-class FallthoughDehydratorTest extends TestCase
+class FallthroughDehydratorTest extends TestCase
 {
     /**
      * @var FallthroughDehydrator

@@ -72,7 +72,7 @@ class ObjectDehydratorTest extends TestCase
     /**
      * @test
      */
-    public function willAssembleOutputArray()
+    public function willAssembleOutputObject()
     {
         /** @var Dehydrator $parent */
         $mockParent = $parent = $this->getMockForAbstractClass(Dehydrator::class);
