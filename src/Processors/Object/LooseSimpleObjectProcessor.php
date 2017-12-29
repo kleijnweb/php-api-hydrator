@@ -44,11 +44,15 @@ class LooseSimpleObjectProcessor extends ObjectProcessor
 
         /** @var Schema $propertySchema */
         foreach ($objectSchema->getPropertySchemas() as $name => $propertySchema) {
-            if (!isset($input->$name) && isset($this->defaults[$name])) {
-                $output->$name = $this->defaults[$name];
-                continue;
+            if (!property_exists($input, $name)) {
+                if (!isset($this->defaults[$name])) {
+                    continue;
+                }
+                $value = $this->defaults[$name];
+            } else {
+                $value = $input->$name;
             }
-            $output->$name = $this->hydrateProperty($name, $input->$name);
+            $output->$name = $this->hydrateProperty($name, $value);
         }
 
         foreach ($input as $name => $value) {

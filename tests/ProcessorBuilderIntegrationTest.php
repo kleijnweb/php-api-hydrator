@@ -42,7 +42,7 @@ class ProcessorBuilderIntegrationTest extends TestCase
     {
         self::$baseLine = self::bench(function () {
             $input = [];
-            for ($i = 0; $i < self::BENCH_SIZE * 10; ++$i) {
+            for ($i = 0; $i < self::BENCH_SIZE * 15; ++$i) {
                 $input[] = self::createTestStructure();
             }
             $output = [];
@@ -185,6 +185,19 @@ class ProcessorBuilderIntegrationTest extends TestCase
         $this->assertAcceptablePerformance(function () use ($processor, $input) {
             $processor->dehydrate($input);
         });
+    }
+
+    /**
+     * @test
+     */
+    public function canHydrateSimpleObjects()
+    {
+        $processorWithoutComplexTypes = $this->processorBuilder->build(
+            TestHelperFactory::createFullPetSchema(false)
+        );
+
+        $data = $processorWithoutComplexTypes->hydrate(self::createTestStructure());
+        $this->assertInstanceOf(\stdClass::class, $data);
     }
 
     /**

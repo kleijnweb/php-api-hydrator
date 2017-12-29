@@ -62,15 +62,7 @@ class LooseSimpleObjectProcessorTest extends ObjectProcessorTest
                 return $value;
             });
 
-        $object = (object)['id' => 1, 'name' => null];
-
-        $data = $processor->hydrate($object);
-
-        $this->assertSame(1, $data->id);
-        $this->assertSame('theDefaultValue', $data->name);
-
         $object = (object)['id' => 1];
-
         $data = $processor->hydrate($object);
 
         $this->assertSame('theDefaultValue', $data->name);
