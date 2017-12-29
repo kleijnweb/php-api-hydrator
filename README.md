@@ -14,14 +14,15 @@ Relies on functionality provided by [KleijnWeb\PhpApi\Descriptions](https://gith
 
 ```php
 $schema = $description->getPath('/foo')->getOperation('post')->getRequestSchema();
-$hydratorBuilder = new HydratorBuilder(new ClassNameResolver(['A\\NameSpace\\Somewhere']));
-$hydrator = $hydratorBuilder->build($schema);
 
-$dehydratorBuilder = new DehydratorBuilder();
-$dehydrator = $dehydratorBuilder->build($schema);
+$builder = new ProcessorBuilder(
+    TestHelperFactory::createClassNameResolver(),
+    new DateTimeSerializer()
+);
+$processor = $builder->build($schema);
 
-$typedObjects = $hydrator->hydrate($input, $schema);
-$output = $dehydrator->dehydrate($typedObjects, $schema);
+$typedObjects = $processor->hydrate($input, $schema);
+$output = $processor->dehydrate($typedObjects, $schema);
 // $input == $output && $input !== $output
 ```
 
