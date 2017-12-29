@@ -10,28 +10,43 @@ Works with [OpenAPI 2.0](https://github.com/OAI/OpenAPI-Specification/blob/maste
 
 Relies on functionality provided by [KleijnWeb\PhpApi\Descriptions](https://github.com/kleijnweb/php-api-descriptions).
 
-# Usage
-
-Converting from `stdClass|stdClass[]` to typed objects matching your API description on hydration, the reverse on dehydration:
+# Usage 
 
 ```php
 $schema = $description->getPath('/foo')->getOperation('post')->getRequestSchema();
-$hydrator = new ObjectHydrator(new ClassNameResolver(['A\\NameSpace\\Somewhere']));
+$hydratorBuilder = new HydratorBuilder(new ClassNameResolver(['A\\NameSpace\\Somewhere']));
+$hydrator = $hydratorBuilder->build($schema);
+
+$dehydratorBuilder = new DehydratorBuilder();
+$dehydrator = $dehydratorBuilder->build($schema);
+
 $typedObjects = $hydrator->hydrate($input, $schema);
-$output = $hydrator->dehydrate($typedObjects, $schema);
+$output = $dehydrator->dehydrate($typedObjects, $schema);
 // $input == $output && $input !== $output
 ```
 
-You can also technically use (abuse?) the hydrator to cast scalar values: it will accept any type of `Schema`.
+### Performance Expectations
+
+On my old Xeon W3570, both hydration and deydration of a an array of 1000 realistic objects (nested objects, arrays) takes about 100ms, 
+on average a little short of 1ms per root object.  
+
+### NULL Values
+
+When dehydrating objects, the behavior differs for typed (non-stClass) objects and instances of `stdClass`. When the input is `stdClass`, all properties are 
+included in the output as-is, while typed objects will be first flattened to `stdClass` with all properties that have NULL values removed (unless their type in the passed schema is `Schema::TYPE_NULL`).
+
+### Default Vales
+
+JSON-Schema supports several properties not relevant to validation, referred to as "Schema Annotations", one of which is `default`. The hydrator will use this value when the input is NULL or undefined.
 
 ### DateTime
 
 By default will toss strings in date and date-time format into the `DateTime` constructor, and lets it figure out how to parse. When serializing it uses `Y-m-d\TH:i:s.uP`.
 
-The expected in- and output format can be tweaked by injecting a custom instance of `DateTimeSerializer`:
+The expected in- and output format can be tweaked by configuring the factory with a custom instance of `DateTimeSerializer`:
  
  ```php
- $hydrator = new ObjectHydrator(new ClassNameResolver(['A\\NameSpace\\Somewhere']), new DateTimeSerializer(\DateTime::RFC850);
+$hydratorBuilder = new HydratorBuilder(new ClassNameResolver(['A\\NameSpace\\Somewhere']), new DateTimeSerializer(\DateTime::RFC850));
  ```
 
 # Contributing
