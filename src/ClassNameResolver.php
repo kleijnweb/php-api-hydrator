@@ -47,7 +47,8 @@ class ClassNameResolver
             }
 
             throw new ClassNotFoundException(
-                sprintf("Did not find type '%s' in namespace(s) '%s'.", $typeName,
+                sprintf(
+                    "Did not find type '%s' in namespace(s) '%s'.", $typeName,
                     implode(', ', $this->resourceNamespaces))
             );
         }

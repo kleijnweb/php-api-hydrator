@@ -8,44 +8,14 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Scalar;
 
-use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\StringProcessor;
-use PHPUnit\Framework\TestCase;
 
-class StringProcessorTest extends TestCase
+class StringProcessorTest extends BasicScalarTest
 {
-    /**
-     * @var StringProcessor
-     */
-    private $processor;
-
     protected function setUp()
     {
-        $this->processor = new StringProcessor(new ScalarSchema((object)['type' => Schema::TYPE_STRING]));
-    }
-
-    /**
-     * @test
-     * @dataProvider  valueProvider
-     *
-     * @param int|float $value
-     * @param int|float $hydrated
-     */
-    public function willHydrateEverythingAsString($value, $hydrated)
-    {
-        $this->assertSame($hydrated, $this->processor->hydrate($value));
-    }
-
-    /**
-     * @test
-     * @dataProvider  valueProvider
-     *
-     * @param mixed $value
-     */
-    public function dehydrateWillAlwaysReturnValueAsIs($value)
-    {
-        $this->assertSame($value, $this->processor->dehydrate($value));
+        $this->processor = new StringProcessor($this->createSchema(Schema::TYPE_STRING, 'a'));
     }
 
     /**

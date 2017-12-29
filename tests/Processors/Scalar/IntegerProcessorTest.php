@@ -30,6 +30,20 @@ class IntegerProcessorTest extends TestCase
     /**
      * @test
      */
+    public function willHydrateDefault()
+    {
+        $processor = new IntegerProcessor(
+            new ScalarSchema((object)[
+                'type'   => Schema::TYPE_INT,
+                'default' => -1
+            ])
+        );
+        $this->assertSame(-1, $processor->hydrate(null));
+    }
+
+    /**
+     * @test
+     */
     public function constructorOnInt64SchemaWhenNotSupported()
     {
         $this->expectException(UnsupportedException::class);

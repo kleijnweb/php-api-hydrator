@@ -41,6 +41,40 @@ class ComplexTypePropertyProcessorTest extends ObjectProcessorTest
     }
 
     /**
+     * @test
+     */
+    public function willHydrateDefault()
+    {
+        $processor = $this->createProcessor(
+            function (ObjectSchema $schema) {
+                return $this->factory($schema, Tag::class);
+            },
+            (object)[
+                'id'   => new ScalarSchema((object)[
+                    'type' => ScalarSchema::TYPE_INT,
+                ]),
+                'name' => new ScalarSchema((object)[
+                    'type' => ScalarSchema::TYPE_NULL,
+                    'default' => 'theDefaultValue'
+                ]),
+            ]);
+
+        $this->mockPropertyProcesser
+            ->expects($this->any())
+            ->method('hydrate')
+            ->willReturnCallback(function ($value) {
+                return $value;
+            });
+
+        $object = (object)['id' => 1];
+
+        $data = $processor->hydrate($object);
+
+        $this->assertSame(1, $data->getId());
+        $this->assertSame('theDefaultValue', $data->getName());
+    }
+
+    /**
      *
      * @test
      */

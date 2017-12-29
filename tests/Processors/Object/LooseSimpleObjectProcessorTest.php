@@ -11,6 +11,7 @@ namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Object;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Processors\AnyProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\LooseSimpleObjectProcessor;
@@ -33,6 +34,46 @@ class LooseSimpleObjectProcessorTest extends ObjectProcessorTest
         $actual = $processor->dehydrate((object)['a' => 3, 'b' => 2, 'c' => 1]);
 
         $this->assertEquals((object)['a' => 'three', 'b' => 'two', 'c' => 'one'], $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function willHydrateDefault()
+    {
+        $processor = $this->createProcessor(
+            function (ObjectSchema $schema) {
+                return $this->factory($schema);
+            },
+            (object)[
+                'id'   => new ScalarSchema((object)[
+                    'type' => ScalarSchema::TYPE_INT,
+                ]),
+                'name' => new ScalarSchema((object)[
+                    'type' => ScalarSchema::TYPE_NULL,
+                    'default' => 'theDefaultValue'
+                ]),
+            ]);
+
+        $this->mockPropertyProcesser
+            ->expects($this->any())
+            ->method('hydrate')
+            ->willReturnCallback(function ($value) {
+                return $value;
+            });
+
+        $object = (object)['id' => 1, 'name' => null];
+
+        $data = $processor->hydrate($object);
+
+        $this->assertSame(1, $data->id);
+        $this->assertSame('theDefaultValue', $data->name);
+
+        $object = (object)['id' => 1];
+
+        $data = $processor->hydrate($object);
+
+        $this->assertSame('theDefaultValue', $data->name);
     }
 
     /**

@@ -37,27 +37,24 @@ class LooseSimpleObjectProcessor extends ObjectProcessor
      */
     public function hydrateObject(\stdClass $input)
     {
-        $output = clone $input;
+        $output = (object)[];
 
         /** @var ObjectSchema $objectSchema */
         $objectSchema = $this->schema;
 
-        /** @var Schema[] $propertySchemas */
-        $propertySchemas = [];
-
-        foreach ($input as $name => $value) {
-            if ($objectSchema->hasPropertySchema($name)) {
-                $propertySchemas[$name] = $objectSchema->getPropertySchema($name);
-            } else {
-                $output->$name = $this->anyProcessor->hydrate($value);
-            }
-        }
-
-        foreach ($propertySchemas as $name => $propertySchema) {
+        /** @var Schema $propertySchema */
+        foreach ($objectSchema->getPropertySchemas() as $name => $propertySchema) {
             if (!isset($input->$name) && isset($this->defaults[$name])) {
-                $input->$name = $this->defaults[$name];
+                $output->$name = $this->defaults[$name];
+                continue;
             }
             $output->$name = $this->hydrateProperty($name, $input->$name);
+        }
+
+        foreach ($input as $name => $value) {
+            if (!isset($output->$name)) {
+                $output->$name = $this->anyProcessor->hydrate($value);
+            }
         }
 
         return $output;

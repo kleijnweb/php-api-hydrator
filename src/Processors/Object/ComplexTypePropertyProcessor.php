@@ -31,11 +31,9 @@ class ComplexTypePropertyProcessor extends ComplexTypeProcessor
                 }
 
                 if (isset($this->propertyProcessors[$name])) {
-                    $this->reflectionProperties[$name]->setValue(
-                        $object,
-                        $this->hydrateProperty($name, $value)
-                    );
+                    $value = $this->hydrateProperty($name, $value);
                 }
+                $this->reflectionProperties[$name]->setValue($object, $value);
             }
         }
 

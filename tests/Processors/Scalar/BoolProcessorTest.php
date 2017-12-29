@@ -8,44 +8,15 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Scalar;
 
-use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\BoolProcessor;
-use PHPUnit\Framework\TestCase;
 
-class BoolProcessorTest extends TestCase
+class BoolProcessorTest extends BasicScalarTest
 {
-    /**
-     * @var BoolProcessor
-     */
-    private $processor;
 
     protected function setUp()
     {
-        $this->processor = new BoolProcessor(new ScalarSchema((object)['type' => Schema::TYPE_BOOL]));
-    }
-
-    /**
-     * @test
-     * @dataProvider  valueProvider
-     *
-     * @param int|float $value
-     * @param int|float $hydrated
-     */
-    public function willHydrateEverythingAsString($value, $hydrated)
-    {
-        $this->assertSame($hydrated, $this->processor->hydrate($value));
-    }
-
-    /**
-     * @test
-     * @dataProvider  valueProvider
-     *
-     * @param mixed $value
-     */
-    public function dehydrateWillAlwaysReturnValueAsIs($value)
-    {
-        $this->assertSame($value, $this->processor->dehydrate($value));
+        $this->processor = new BoolProcessor($this->createSchema(Schema::TYPE_BOOL, false));
     }
 
     /**
