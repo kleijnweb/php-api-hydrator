@@ -14,6 +14,7 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
+use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use KleijnWeb\PhpApi\Hydrator\Processors\AnyProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\ArrayProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\ComplexTypePropertyProcessor;
@@ -33,7 +34,6 @@ use PHPUnit\Framework\TestCase;
  */
 class ProcessorBuilderTest extends TestCase
 {
-
     /**
      * @param Schema $schema
      * @param string $expectedType
@@ -50,6 +50,22 @@ class ProcessorBuilderTest extends TestCase
             $expectedType,
             $builder->build($schema)
         );
+    }
+
+    /**
+     * @test
+     */
+    public function willFailOnUnknownSchema()
+    {
+        $builder = new ProcessorBuilder(
+            TestHelperFactory::createClassNameResolver(),
+            new DateTimeSerializer()
+        );
+        $this->expectException(UnsupportedException::class);
+
+        /** @var Schema $schema */
+        $schema = $this->getMockBuilder(Schema::class)->disableOriginalConstructor()->getMockForAbstractClass();
+        $builder->build($schema);
     }
 
     public static function dataProvider(): array

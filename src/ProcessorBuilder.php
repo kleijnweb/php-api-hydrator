@@ -97,20 +97,23 @@ class ProcessorBuilder
             }
 
             return $hydrator;
-        } elseif ($schema instanceof ArraySchema) {
+        }
+        if ($schema instanceof ArraySchema) {
             /** @var ArrayProcessor $hydrator */
             $hydrator = $this->getHydrator($schema, ArrayProcessor::class);
             $hydrator->setItemsProcessor($this->build($schema->getItemsSchema()));
 
             return $hydrator;
-        } elseif ($schema instanceof ScalarSchema) {
+        }
+        if ($schema instanceof ScalarSchema) {
             if ($schema->isDateTime()) {
                 return $this->getHydrator($schema, DateTimeProcessor::class);
             }
             if (isset(self::$primitiveMap[$schema->getType()])) {
                 return $this->getHydrator($schema, self::$primitiveMap[$schema->getType()]);
             }
-        } elseif ($schema instanceof AnySchema) {
+        }
+        if ($schema instanceof AnySchema) {
             return $this->getHydrator($schema, AnyProcessor::class);
         }
         throw new UnsupportedException("Unsupported schema type " . get_class($schema));
@@ -132,11 +135,8 @@ class ProcessorBuilder
                 case ComplexTypePropertyProcessor::class:
                     /** @var ObjectSchema $schema */
                     $objectSchema = $schema;
-
-                    $hydrator = new ComplexTypePropertyProcessor(
-                        $objectSchema,
-                        $this->classNameResolver->resolve($schema->getComplexType()->getName())
-                    );
+                    $className    = $this->classNameResolver->resolve($schema->getComplexType()->getName());
+                    $hydrator     = new ComplexTypePropertyProcessor($objectSchema, $className);
                     break;
                 case StrictSimpleObjectProcessor::class:
                     /** @var ObjectSchema $schema */
