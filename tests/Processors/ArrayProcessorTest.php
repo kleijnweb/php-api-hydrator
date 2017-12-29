@@ -14,7 +14,7 @@ use KleijnWeb\PhpApi\Hydrator\Processors\ArrayProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Processor;
 use PHPUnit\Framework\TestCase;
 
-class ArrayHydratorTest extends TestCase
+class ArrayProcessorTest extends TestCase
 {
     /**
      * @var ArrayProcessor

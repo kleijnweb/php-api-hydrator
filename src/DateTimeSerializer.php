@@ -17,21 +17,35 @@ use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
  */
 class DateTimeSerializer
 {
-    const DEFAULT_FORMAT = 'Y-m-d\TH:i:s.uP';
+    const FORMAT_RFC3339_USEC = 'Y-m-d\TH:i:s.uP';
 
     /**
      * @var string
      */
-    private $format;
+    private $outputFormat;
+
+    /**
+     * @var string
+     */
+    private $inputDateTimeFormats = [
+        self::FORMAT_RFC3339_USEC,
+        \DateTime::RFC3339_EXTENDED,
+        \DateTime::RFC3339,
+        \DateTime::ATOM,
+    ];
 
     /**
      * DateTimeSerializer constructor.
      *
-     * @param string $format
+     * @param string|string[] ...$formats
      */
-    public function __construct(string $format = null)
+    public function __construct(string ...$formats)
     {
-        $this->format = $format;
+        if (isset($formats[0])) {
+            $this->outputFormat = $formats[0];
+        }
+
+        $this->inputDateTimeFormats = $formats + $this->inputDateTimeFormats;
     }
 
     /**
@@ -46,7 +60,7 @@ class DateTimeSerializer
             return $value->format('Y-m-d');
         }
 
-        return $value->format($this->format ?: self::DEFAULT_FORMAT);
+        return $value->format($this->outputFormat ?: self::FORMAT_RFC3339_USEC);
     }
 
     /**
@@ -58,22 +72,23 @@ class DateTimeSerializer
      */
     public function deserialize($value, Schema $schema): \DateTime
     {
-        if ($this->format) {
-            if (false === $result = \DateTime::createFromFormat($this->format, $value)) {
+        if ($schema instanceof ScalarSchema && $schema->hasFormat(Schema::FORMAT_DATE)) {
+            if (false === $result = \DateTime::createFromFormat('Y-m-d H:i:s', "$value 00:00:00")) {
                 throw new DateTimeNotParsableException(
-                    sprintf("Date '%s' not parsable as '%s'", $value, $this->format)
+                    sprintf("'%s' not parsable in YYYY-MM-DD format", $value)
                 );
             }
-
             return $result;
         }
 
-        if ($schema instanceof ScalarSchema) {
-            if ($schema->hasFormat(Schema::FORMAT_DATE)) {
-                return new \DateTime("{$value} 00:00:00");
+        foreach ($this->inputDateTimeFormats as $format) {
+            if (false !== $result = \DateTime::createFromFormat($format, $value)) {
+                return $result;
             }
         }
 
-        return new \DateTime($value);
+        throw new DateTimeNotParsableException(
+            sprintf("Datetime '%s' not parsable as one of '%s'", $value, implode(', ', $this->inputDateTimeFormats))
+        );
     }
 }

@@ -41,13 +41,20 @@ JSON-Schema supports several properties not relevant to validation, referred to 
 
 ### DateTime
 
-By default will toss strings in date and date-time format into the `DateTime` constructor, and lets it figure out how to parse. When serializing it uses `Y-m-d\TH:i:s.uP`.
-
 The expected in- and output format can be tweaked by configuring the factory with a custom instance of `DateTimeSerializer`:
  
  ```php
 $hydratorBuilder = new HydratorBuilder(new ClassNameResolver(['A\\NameSpace\\Somewhere']), new DateTimeSerializer(\DateTime::RFC850));
  ```
+
+By default output is formatted as 'Y-m-d\TH:i:s.uP' (RFC3339 with microseconds). Input parsing is attempted as follows:
+
+1. Any arguments to the constructor
+2. RFC3339 with microseconds
+3. RFC3339 with milliseconds
+4. RFC3339
+5. ISO8601 (ATOM)
+
 
 # Contributing
 

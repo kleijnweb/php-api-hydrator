@@ -9,6 +9,7 @@
 namespace KleijnWeb\PhpApi\Hydrator\Processors;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\AnySchema;
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
@@ -25,34 +26,38 @@ class AnyProcessor extends Processor
      */
     private $dateTimeSerializer;
 
+    /**
+     * @var ScalarSchema
+     */
+    private $dateSchema;
+
 
     /**
-     * ScalarVisitor constructor.
-     * @param DateTimeSerializer|null $dateTimeSerializer
-     * @param bool                    $force32Bit
+     * AnyProcessor constructor.
+     * @param AnySchema          $schema
+     * @param DateTimeSerializer $dateTimeSerializer
      */
-    public function __construct(AnySchema $schema, DateTimeSerializer $dateTimeSerializer, $force32Bit = false)
+    public function __construct(AnySchema $schema, DateTimeSerializer $dateTimeSerializer)
     {
         parent::__construct($schema);
 
-        $this->is32Bit            = $force32Bit === true ? true : PHP_INT_SIZE === 4;
         $this->dateTimeSerializer = $dateTimeSerializer;
+
+        $this->dateSchema = new ScalarSchema(
+            (object)['type' => Schema::TYPE_STRING, 'format' => Schema::FORMAT_DATE]
+        );
     }
 
     /**
      * Cast a scalar value using the schema.
      *
-     * @param mixed  $value
-     * @param Schema $schema
+     * @param mixed $value
      *
      * @return float|int|string|\DateTimeInterface
      * @throws UnsupportedException
      */
     public function hydrate($value)
     {
-        if (is_numeric($value)) {
-            return $this->castNumber($value);
-        }
         if ($value instanceof \stdClass) {
             $value = clone $value;
             foreach ($value as $name => $propertyValue) {
@@ -61,31 +66,24 @@ class AnyProcessor extends Processor
 
             return $value;
         }
+
         if (is_array($value)) {
-            return array_map(function ($itemValue)  {
+            return array_map(function ($itemValue) {
                 return $this->hydrate($itemValue);
             }, $value);
         }
-        try {
-            $value = $this->dateTimeSerializer->deserialize($value, $this->schema);
-        } catch (\Throwable $e) {
-            return $value;
+
+        if (is_string($value)) {
+            if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}(.*)$/', $value, $matches)) {
+                if (strlen($matches[1]) === 0) {
+                    return $this->dateTimeSerializer->deserialize($value, $this->dateSchema);
+                }
+
+                return $this->dateTimeSerializer->deserialize($value, $this->schema);
+            }
         }
 
         return $value;
-    }
-
-    /**
-     * @param mixed $value
-     * @return float|int
-     */
-    private function castNumber($value)
-    {
-        if (!is_string($value)) {
-            return $value;
-        }
-
-        return !ctype_digit($value) ? (float)$value : (int)$value;
     }
 
     /**
@@ -94,6 +92,6 @@ class AnyProcessor extends Processor
      */
     public function dehydrate($value)
     {
-        // TODO: Implement dehydrate() method.
+        return $value;
     }
 }
