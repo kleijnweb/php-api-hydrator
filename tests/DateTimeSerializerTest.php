@@ -81,19 +81,6 @@ class DateTimeSerializerTest extends TestCase
     /**
      * @test
      */
-    public function willDeserializeValueUsingAnySchemaByUsingDateTimeConstructor()
-    {
-        $dateTime   = 'midnight';
-        $serializer = new DateTimeSerializer();
-        $schema     = new AnySchema();
-        $actual     = $serializer->deserialize($dateTime, $schema);
-
-        $this->assertEquals(new \DateTime($dateTime), $actual);
-    }
-
-    /**
-     * @test
-     */
     public function willSerializeValueUsingAnySchemaUsingDateTimeFormat()
     {
         $dateTime   = new \DateTime('midnight');
@@ -108,6 +95,19 @@ class DateTimeSerializerTest extends TestCase
      * @test
      */
     public function willThrowExceptionWhenDateNotParsableAccordingToFormat()
+    {
+        $serializer = new DateTimeSerializer();
+        $schema     = new ScalarSchema((object)['format' => Schema::FORMAT_DATE]);
+
+        $this->expectException(DateTimeNotParsableException::class);
+
+        $serializer->deserialize('2016-01-01T23:59:59+01:00', $schema);
+    }
+
+    /**
+     * @test
+     */
+    public function willThrowExceptionWhenDateTimeNotParsableAccordingToFormats()
     {
         $serializer = new DateTimeSerializer(\DateTime::RSS);
         $schema     = new ScalarSchema((object)['format' => Schema::FORMAT_DATE]);

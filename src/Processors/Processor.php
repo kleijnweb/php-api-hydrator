@@ -6,28 +6,38 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator;
+namespace KleijnWeb\PhpApi\Hydrator\Processors;
 
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-interface Hydrator
+abstract class Processor
 {
     /**
-     * @param mixed  $data
-     * @param Schema $schema
-     *
-     * @return mixed
+     * @var Schema
      */
-    public function hydrate($data, Schema $schema);
+    protected $schema;
 
     /**
-     * @param mixed  $data
+     * Hydrator constructor.
      * @param Schema $schema
-     *
+     */
+    public function __construct(Schema $schema)
+    {
+        $this->schema = $schema;
+    }
+
+    /**
+     * @param mixed $value
      * @return mixed
      */
-    public function dehydrate($data, Schema $schema);
+    abstract public function hydrate($value);
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    abstract public function dehydrate($value);
 }

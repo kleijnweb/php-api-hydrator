@@ -6,11 +6,14 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator\Exception;
+namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Object;
+
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class DateTimeNotParsableException extends \RuntimeException
+abstract class SimpleObjectProcessorTest extends ObjectProcessorTest
 {
+    abstract protected function factory(ObjectSchema $schema);
 }

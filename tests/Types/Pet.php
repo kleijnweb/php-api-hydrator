@@ -8,6 +8,9 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Tests\Types;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class Pet
 {
     /**

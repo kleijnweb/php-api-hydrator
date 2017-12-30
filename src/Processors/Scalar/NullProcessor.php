@@ -6,11 +6,19 @@
  * file that was distributed with this source code.
  */
 
-namespace KleijnWeb\PhpApi\Hydrator\Exception;
+namespace KleijnWeb\PhpApi\Hydrator\Processors\Scalar;
 
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
-class DateTimeNotParsableException extends \RuntimeException
+class NullProcessor extends ScalarProcessor
 {
+    /**
+     * @param $value
+     * @return null
+     */
+    public function hydrate($value)
+    {
+        return null;
+    }
 }

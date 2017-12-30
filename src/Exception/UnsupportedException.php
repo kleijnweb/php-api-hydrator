@@ -8,6 +8,9 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Exception;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class UnsupportedException extends \RuntimeException
 {
 }
