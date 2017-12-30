@@ -52,11 +52,14 @@ class ProcessorBuilder
     }
 
     /**
-     * @return FactoryQueue
+     * @param Factory $factory
+     * @return ProcessorBuilder
      */
-    public function getFactoryQueue(): FactoryQueue
+    public function add(Factory $factory): ProcessorBuilder
     {
-        return $this->factoryQueue;
+        $this->factoryQueue->add($factory);
+
+        return $this;
     }
 
     /**

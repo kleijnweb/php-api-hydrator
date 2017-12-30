@@ -6,7 +6,7 @@ All of the processors and their factories are open for extension.
 Here is a trivial example that preempts the default scalar processor.
 
 ```php
-$builder->getFactoryQueue()->add(
+$builder->add(
   new class implements Factory
   {
       public function create(Schema $schema, ProcessorBuilder $builder)
@@ -50,7 +50,7 @@ $this->assertSame('still 42', $actual->id);
 A more typical use case would be to inject custom logic for complex types. The following example uses an identity map to make sure variables with the same ID of a certain type refer to the same object. A typical variant of this would fetch objects from a data store.
 
 ```php
-$builder->getFactoryQueue()->add(
+$builder->add(
     new class($classNameResolver) extends ComplexTypeFactory
     {
         public function supports(Schema $schema)

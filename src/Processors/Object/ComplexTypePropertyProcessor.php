@@ -8,8 +8,6 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Object;
 
-use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
-
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */

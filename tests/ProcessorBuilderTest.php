@@ -68,7 +68,7 @@ class ProcessorBuilderTest extends TestCase
             TestHelperFactory::createClassNameResolver(),
             new DateTimeSerializer()
         );
-        $builder->getFactoryQueue()->add(
+        $builder->add(
             new class implements Factory
             {
                 public function create(Schema $schema, ProcessorBuilder $builder)
@@ -119,7 +119,7 @@ class ProcessorBuilderTest extends TestCase
             new DateTimeSerializer()
         );
 
-        $builder->getFactoryQueue()->add(
+        $builder->add(
             new class($classNameResolver) extends ComplexTypeFactory
             {
                 public function supports(Schema $schema)
