@@ -56,8 +56,7 @@ abstract class ComplexTypeProcessor extends ObjectProcessor
                     continue;
                 }
                 $value = $this->defaults[$name];
-            }
-            else {
+            } else {
                 $value = $this->reflectionProperties[$name]->getValue($object);
             }
 

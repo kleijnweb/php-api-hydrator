@@ -47,7 +47,7 @@ class ArrayProcessor extends Processor
     public function hydrate($value)
     {
         if ($value === null) {
-            if(null == ($value = $this->schema->getDefault())){
+            if (null == ($value = $this->schema->getDefault())) {
                 return null;
             }
         }

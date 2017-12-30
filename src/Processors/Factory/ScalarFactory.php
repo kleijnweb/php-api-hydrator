@@ -43,7 +43,7 @@ class ScalarFactory implements Factory
      */
     public function create(Schema $schema, ProcessorBuilder $builder)
     {
-        if(!$schema instanceof ScalarSchema){
+        if (!$schema instanceof ScalarSchema) {
             return null;
         }
 
