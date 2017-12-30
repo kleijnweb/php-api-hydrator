@@ -18,6 +18,9 @@ use KleijnWeb\PhpApi\Hydrator\Exception\DateTimeNotParsableException;
 class DateTimeSerializer
 {
     const FORMAT_RFC3339_USEC = 'Y-m-d\TH:i:s.uP';
+    const FORMAT_RFC3339_MSEC = \DateTime::RFC3339_EXTENDED;
+    const FORMAT_RFC3339      = \DateTime::RFC3339;
+    const FORMAT_ISO8601      = \DateTime::ATOM;
 
     /**
      * @var string
@@ -29,9 +32,9 @@ class DateTimeSerializer
      */
     protected $inputDateTimeFormats = [
         self::FORMAT_RFC3339_USEC,
-        \DateTime::RFC3339_EXTENDED,
-        \DateTime::RFC3339,
-        \DateTime::ATOM,
+        self::FORMAT_RFC3339_MSEC,
+        self::FORMAT_RFC3339,
+        self::FORMAT_ISO8601,
     ];
 
     /**
@@ -78,6 +81,7 @@ class DateTimeSerializer
                     sprintf("'%s' not parsable in YYYY-MM-DD format", $value)
                 );
             }
+
             return $result;
         }
 

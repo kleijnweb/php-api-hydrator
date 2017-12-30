@@ -53,6 +53,8 @@ Input parsing is attempted as follows:
   <li>ISO8601</li>
 </ol>
 
+**NOTE**: Formats not starting with `Y-m-d` do not work with Schema::FORMAT_DATE nor `AnyProcessor`. 
+
 ### Custom Processors
 
 Class name resolution and DateTime handling can be tweaked by injecting custom instances into the builder, but pretty much all parts of the hydration and dehydration processes are customizable. You can inject custom processors by injecting factories for them into the "processor factory queue". 
