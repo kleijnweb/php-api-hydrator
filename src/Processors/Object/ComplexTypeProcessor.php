@@ -18,7 +18,7 @@ abstract class ComplexTypeProcessor extends ObjectProcessor
     /**
      * @var \ReflectionClass
      */
-    private $reflector;
+    protected $reflector;
 
     /**
      * @var \ReflectionProperty[]
@@ -52,10 +52,14 @@ abstract class ComplexTypeProcessor extends ObjectProcessor
 
         foreach ($objectSchema->getPropertySchemas() as $name => $propertySchema) {
             if (!isset($this->reflectionProperties[$name])) {
-                continue;
+                if (!isset($this->defaults[$name])) {
+                    continue;
+                }
+                $value = $this->defaults[$name];
             }
-
-            $value = $this->reflectionProperties[$name]->getValue($object);
+            else {
+                $value = $this->reflectionProperties[$name]->getValue($object);
+            }
 
             if ($this->shouldFilterOutputValue($objectSchema->getPropertySchema($name), $value)) {
                 continue;

@@ -20,19 +20,14 @@ use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 class AnyProcessor extends Processor
 {
     /**
-     * @var bool
-     */
-    private $is32Bit;
-
-    /**
      * @var DateTimeSerializer
      */
-    private $dateTimeSerializer;
+    protected $dateTimeSerializer;
 
     /**
      * @var ScalarSchema
      */
-    private $dateSchema;
+    protected $dateSchema;
 
 
     /**

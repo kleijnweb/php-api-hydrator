@@ -18,7 +18,7 @@ class ArrayProcessor extends Processor
     /**
      * @var Processor
      */
-    private $itemsProcessor;
+    protected $itemsProcessor;
 
     /**
      * ArrayHydrator constructor.
@@ -31,18 +31,27 @@ class ArrayProcessor extends Processor
 
     /**
      * @param Processor $itemsHydrator
+     * @return ArrayProcessor
      */
-    public function setItemsProcessor(Processor $itemsHydrator)
+    public function setItemsProcessor(Processor $itemsHydrator): ArrayProcessor
     {
         $this->itemsProcessor = $itemsHydrator;
+
+        return $this;
     }
 
     /**
-     * @param mixed $value
-     * @return mixed
+     * @param null|array $value
+     * @return null|array
      */
     public function hydrate($value)
     {
+        if ($value === null) {
+            if(null == ($value = $this->schema->getDefault())){
+                return null;
+            }
+        }
+
         return array_map(function ($value) {
             return $this->itemsProcessor->hydrate($value);
         }, $value);

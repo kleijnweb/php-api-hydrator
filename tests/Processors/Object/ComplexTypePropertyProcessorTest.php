@@ -8,8 +8,10 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Object;
 
+use KleijnWeb\PhpApi\Descriptions\Description\ComplexType;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\ComplexTypePropertyProcessor;
 use KleijnWeb\PhpApi\Hydrator\Tests\TestHelperFactory;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
@@ -24,7 +26,57 @@ class ComplexTypePropertyProcessorTest extends ObjectProcessorTest
     /**
      * @test
      */
-    public function canHydrateTypedObject()
+    public function hydrateWillOmitPropertiesNotInSchema()
+    {
+        $processor = $this->createProcessor(function (ObjectSchema $schema) {
+            return $this->factory($schema, Tag::class);
+        }, TestHelperFactory::createPartialPetSchema());
+
+        $this->mockPropertyProcesser
+            ->expects($this->once())
+            ->method('hydrate')
+            ->willReturn(999);
+
+        /** @var Tag $actual */
+        $actual = $processor->hydrate((object)['id' => 2, 'name' => 'Fido']);
+
+        $this->assertInstanceOf(Tag::class, $actual);
+        $this->assertSame(999, $actual->getId());
+    }
+
+    /**
+     * @test
+     */
+    public function hydrateWillOmitPropertiesNotInClass()
+    {
+        $tagSchema = new ObjectSchema(
+            (object)[],
+            (object)[
+                'id'          => new ScalarSchema((object)['type' => 'integer']),
+                'nonExistent' => new ScalarSchema((object)['type' => 'string']),
+            ]);
+
+        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
+
+        $processor = $this->createProcessor(function (ObjectSchema $schema) {
+            return $this->factory($schema, Tag::class);
+        }, $tagSchema);
+
+        $this->mockPropertyProcesser
+            ->expects($this->once())
+            ->method('hydrate')
+            ->willReturn(999);
+
+        /** @var Tag $actual */
+        $actual = $processor->hydrate((object)['id' => 2, 'nonExistent' => 'value']);
+
+        $this->assertObjectNotHasAttribute('nonExistent', $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function hydrateWillDelegateToPropertyProcessor()
     {
         $processor = $this->createProcessor(function (ObjectSchema $schema) {
             return $this->factory($schema, Tag::class);
@@ -46,6 +98,131 @@ class ComplexTypePropertyProcessorTest extends ObjectProcessorTest
     /**
      * @test
      */
+    public function dehydrateWillOmitPropertyInClassWhenValueIsNullAndTypeIsNotNull()
+    {
+        $processor = $this->createProcessor(function (ObjectSchema $schema) {
+            return $this->factory($schema, Tag::class);
+        }, TestHelperFactory::createTagSchema());
+
+        $this->mockPropertyProcesser
+            ->expects($this->once())
+            ->method('dehydrate')
+            ->with(2)
+            ->willReturn(999);
+
+        $tag       = new Tag(2, 'meh');
+        $reflector = new \ReflectionObject($tag);
+        $property  = $reflector->getProperty('name');
+        $property->setAccessible(true);
+        $property->setValue($tag, null);
+
+        $actual = $processor->dehydrate($tag);
+
+        $this->assertInstanceOf(\stdClass::class, $actual);
+        $this->assertObjectNotHasAttribute('name', $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function dehydrateWillDelegateToPropertyProcessorWhenValueNotNull()
+    {
+        $processor = $this->createProcessor(function (ObjectSchema $schema) {
+            return $this->factory($schema, Tag::class);
+        }, TestHelperFactory::createTagSchema());
+
+        $this->mockPropertyProcesser
+            ->expects($this->any())
+            ->method('dehydrate')
+            ->willReturnCallback(function ($value) {
+                return $value;
+            });
+
+        $actual = $processor->dehydrate(new Tag(2, 'meh'));
+        $this->assertInstanceOf(\stdClass::class, $actual);
+        $this->assertsame(2, $actual->id);
+        $this->assertsame('meh', $actual->name);
+    }
+
+    /**
+     * @test
+     */
+    public function dehydrateWillDelegateToPropertyProcessorWhenTypeAndValueNull()
+    {
+        $tagSchema = new ObjectSchema(
+            (object)[],
+            (object)[
+                'id'   => new ScalarSchema((object)['type' => 'integer']),
+                'name' => new ScalarSchema((object)['type' => Schema::TYPE_NULL]),
+            ]);
+
+        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
+
+        $processor = $this->createProcessor(function (ObjectSchema $schema) {
+            return $this->factory($schema, Tag::class);
+        }, $tagSchema);
+
+        $this->mockPropertyProcesser
+            ->expects($this->any())
+            ->method('dehydrate')
+            ->willReturnCallback(function ($value) {
+                return $value;
+            });
+
+        $tag       = new Tag(2, 'meh');
+        $reflector = new \ReflectionObject($tag);
+        $property  = $reflector->getProperty('name');
+        $property->setAccessible(true);
+        $property->setValue($tag, null);
+
+        $actual = $processor->dehydrate($tag);
+
+        $this->assertInstanceOf(\stdClass::class, $actual);
+        $this->assertObjectHasAttribute('name', $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function dehydrateWillSetDefaultForPropertiesNotClass()
+    {
+        $tagSchema = new ObjectSchema(
+            (object)[],
+            (object)[
+                'id'   => new ScalarSchema((object)['type' => 'integer']),
+                'name' => new ScalarSchema((object)['type' => Schema::TYPE_STRING]),
+                'extra' => new ScalarSchema(
+                    (object)[
+                        'type' => Schema::TYPE_STRING,
+                        'default' => 'defaultValue'
+
+                    ]
+                ),
+            ]);
+
+        $tagSchema->setComplexType(new ComplexType('Tag', $tagSchema));
+
+        $processor = $this->createProcessor(function (ObjectSchema $schema) {
+            return $this->factory($schema, Tag::class);
+        }, $tagSchema);
+
+        $this->mockPropertyProcesser
+            ->expects($this->any())
+            ->method('dehydrate')
+            ->willReturnCallback(function ($value) {
+                return $value;
+            });
+
+        $actual = $processor->dehydrate(new Tag(2, 'meh'));
+        $this->assertInstanceOf(\stdClass::class, $actual);
+        $this->assertsame(2, $actual->id);
+        $this->assertsame('meh', $actual->name);
+        $this->assertsame('defaultValue', $actual->extra);
+    }
+
+    /**
+     * @test
+     */
     public function willHydrateDefault()
     {
         $processor = $this->createProcessor(
@@ -57,8 +234,8 @@ class ComplexTypePropertyProcessorTest extends ObjectProcessorTest
                     'type' => ScalarSchema::TYPE_INT,
                 ]),
                 'name' => new ScalarSchema((object)[
-                    'type' => ScalarSchema::TYPE_NULL,
-                    'default' => 'theDefaultValue'
+                    'type'    => ScalarSchema::TYPE_NULL,
+                    'default' => 'theDefaultValue',
                 ]),
             ]);
 

@@ -17,9 +17,14 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use KleijnWeb\PhpApi\Hydrator\Processors\AnyProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\ArrayProcessor;
+use KleijnWeb\PhpApi\Hydrator\Processors\Factory\ComplexTypeFactory;
+use KleijnWeb\PhpApi\Hydrator\Processors\Factory\Factory;
+use KleijnWeb\PhpApi\Hydrator\Processors\Factory\ScalarFactory;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\ComplexTypePropertyProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\LooseSimpleObjectProcessor;
+use KleijnWeb\PhpApi\Hydrator\Processors\Object\ObjectProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\StrictSimpleObjectProcessor;
+use KleijnWeb\PhpApi\Hydrator\Processors\Processor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\BoolProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\DateTimeProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\IntegerProcessor;
@@ -27,6 +32,8 @@ use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\NullProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\NumberProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\StringProcessor;
 use KleijnWeb\PhpApi\Hydrator\Tests\TestHelperFactory;
+use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
+use KleijnWeb\PhpApi\Hydrator\Tests\Types\Tag;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -50,6 +57,124 @@ class ProcessorBuilderTest extends TestCase
             $expectedType,
             $builder->build($schema)
         );
+    }
+
+    /**
+     * @test
+     */
+    public function canInjectCustomScalarProcessor()
+    {
+        $builder = new ProcessorBuilder(
+            TestHelperFactory::createClassNameResolver(),
+            new DateTimeSerializer()
+        );
+        $builder->getFactoryQueue()->add(
+            new class implements Factory
+            {
+                public function create(Schema $schema, ProcessorBuilder $builder)
+                {
+                    if (!$schema instanceof ScalarSchema) {
+                        return null;
+                    }
+
+                    return new class($schema) extends Processor
+                    {
+                        public function hydrate($value)
+                        {
+                            return 42;
+                        }
+
+                        public function dehydrate($value)
+                        {
+                            return 'still 42';
+                        }
+                    };
+                }
+
+                public function getPriority(): int
+                {
+                    return ScalarFactory::PRIORITY + 1;
+                }
+            }
+        );
+
+        $processor = $builder->build(TestHelperFactory::createFullPetSchema());
+
+        /** @var Pet $actual */
+        $actual = $processor->hydrate((object)['id' => 999]);
+        $this->assertSame(42, $actual->getId());
+
+        /** @var \stdClass $actual */
+        $actual = $processor->dehydrate($actual);
+        $this->assertSame('still 42', $actual->id);
+    }
+
+    /**
+     * @test
+     */
+    public function canInjectCustomObjectProcessor()
+    {
+        $builder = new ProcessorBuilder(
+            $classNameResolver = TestHelperFactory::createClassNameResolver(),
+            new DateTimeSerializer()
+        );
+
+        $builder->getFactoryQueue()->add(
+            new class($classNameResolver) extends ComplexTypeFactory
+            {
+                public function supports(Schema $schema)
+                {
+                    if (!parent::supports($schema)) {
+                        return false;
+                    }
+
+                    /** @var ObjectSchema $schema */
+                    return 'Tag' === $schema->getComplexType()->getName();
+                }
+
+                public function getPriority(): int
+                {
+                    return ComplexTypeFactory::PRIORITY + 1;
+                }
+
+                protected function instantiate(ObjectSchema $schema, ProcessorBuilder $builder): ObjectProcessor
+                {
+                    $className = $this->classNameResolver->resolve($schema->getComplexType()->getName());
+
+                    return new class($schema, $className) extends ComplexTypePropertyProcessor
+                    {
+                        private $identityMap = [];
+
+                        protected function getObjectForHydration(\stdClass $object)
+                        {
+                            if (isset($this->identityMap[$object->id])) {
+                                return $this->identityMap[$object->id];
+                            }
+
+                            return $this->identityMap[$object->id] = parent::getObjectForHydration($object);
+                        }
+                    };
+                }
+            }
+        );
+
+        $processor = $builder->build(TestHelperFactory::createTagSchema());
+
+        /** @var Tag $actual */
+        $tag1 = $processor->hydrate((object)['id' => 1]);
+        $tag2 = $processor->hydrate((object)['id' => 1]);
+        $tag3 = $processor->hydrate((object)['id' => 2]);
+        $this->assertSame($tag1, $tag2);
+        $this->assertNotSame($tag2, $tag3);
+
+        $processor = $builder->build(TestHelperFactory::createFullPetSchema());
+
+        /** @var Pet $actual */
+        $pet1 = $processor->hydrate((object)['id' => 1]);
+        $pet2 = $processor->hydrate((object)['id' => 1]);
+        $pet3 = $processor->hydrate((object)['id' => 2]);
+        $this->assertNotSame($pet1, $pet2);
+        $this->assertNotSame($pet2, $pet3);
     }
 
     /**
@@ -87,6 +212,13 @@ class ProcessorBuilderTest extends TestCase
             [new AnySchema(), AnyProcessor::class],
             [new ArraySchema((object)[], new AnySchema()), ArrayProcessor::class],
             [new ObjectSchema((object)[], (object)['id' => new AnySchema(),]), LooseSimpleObjectProcessor::class],
+            [
+                new ObjectSchema(
+                    (object)['additionalProperties' => true,],
+                    (object)['id' => new AnySchema(),]
+                ),
+                LooseSimpleObjectProcessor::class,
+            ],
             [
                 new ObjectSchema((object)['additionalProperties' => false], (object)['id' => new AnySchema(),]),
                 StrictSimpleObjectProcessor::class,

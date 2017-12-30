@@ -18,12 +18,12 @@ class ClassNameResolver
     /**
      * @var array
      */
-    private $resourceNamespaces = [];
+    protected $resourceNamespaces = [];
 
     /**
      * @var array
      */
-    private $cache = [];
+    protected $cache = [];
 
     /**
      * ClassNameResolver constructor.

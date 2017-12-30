@@ -22,12 +22,12 @@ class DateTimeSerializer
     /**
      * @var string
      */
-    private $outputFormat;
+    protected $outputFormat;
 
     /**
      * @var string
      */
-    private $inputDateTimeFormats = [
+    protected $inputDateTimeFormats = [
         self::FORMAT_RFC3339_USEC,
         \DateTime::RFC3339_EXTENDED,
         \DateTime::RFC3339,

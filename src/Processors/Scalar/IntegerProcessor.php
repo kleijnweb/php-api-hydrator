@@ -20,7 +20,7 @@ class IntegerProcessor extends ScalarProcessor
     /**
      * @var bool
      */
-    private $is32BitSystem;
+    protected $is32BitSystem;
 
     /**
      * IntegerHydrator constructor.

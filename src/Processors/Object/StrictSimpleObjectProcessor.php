@@ -22,7 +22,7 @@ class StrictSimpleObjectProcessor extends ObjectProcessor
      */
     public function hydrateObject(\stdClass $input)
     {
-        $object = clone $input;
+        $object = (object)[];
 
         /** @var ObjectSchema $objectSchema */
         $objectSchema = $this->schema;

@@ -33,11 +33,6 @@ class ProcessorBuilderIntegrationTest extends TestCase
      */
     private $processorBuilder;
 
-    /**
-     * @var ClassNameResolver
-     */
-    private $classNameResolver;
-
     public static function setUpBeforeClass()
     {
         self::$baseLine = self::bench(function () {
@@ -56,8 +51,9 @@ class ProcessorBuilderIntegrationTest extends TestCase
 
     protected function setUp()
     {
-        $this->classNameResolver = new ClassNameResolver(['KleijnWeb\PhpApi\Hydrator\Tests\Types']);
-        $this->processorBuilder  = new ProcessorBuilder($this->classNameResolver);
+        $this->processorBuilder = new ProcessorBuilder(
+            new ClassNameResolver(['KleijnWeb\PhpApi\Hydrator\Tests\Types'])
+        );
     }
 
     /**

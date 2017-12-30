@@ -33,7 +33,6 @@ abstract class ObjectProcessorTest extends TestCase
 
     protected function setUp()
     {
-
         $mock                        = $this->createMockPropertyProcessor();
         $this->mockPropertyProcesser = $mock;
         $this->propertyProcesser     = $mock;

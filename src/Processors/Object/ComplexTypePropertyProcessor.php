@@ -8,6 +8,8 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Object;
 
+use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
+
 /**
  * @author John Kleijn <john@kleijnweb.nl>
  */
@@ -19,7 +21,7 @@ class ComplexTypePropertyProcessor extends ComplexTypeProcessor
      */
     protected function hydrateObject(\stdClass $input)
     {
-        $object = unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->className), $this->className));
+        $object = $this->getObjectForHydration($input);
 
         foreach ($this->reflectionProperties as $name => $reflectionProperty) {
             if (isset($this->reflectionProperties[$name])) {
@@ -40,5 +42,14 @@ class ComplexTypePropertyProcessor extends ComplexTypeProcessor
         }
 
         return $object;
+    }
+
+    /**
+     * @param \stdClass $input
+     * @return object
+     */
+    protected function getObjectForHydration(\stdClass $input)
+    {
+        return unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->className), $this->className));
     }
 }

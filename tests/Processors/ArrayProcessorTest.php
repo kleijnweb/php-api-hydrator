@@ -32,7 +32,7 @@ class ArrayProcessorTest extends TestCase
     /**
      * @test
      */
-    public function hydrateWillAssembleOutputArray()
+    public function hydrateWillDelegateToItemsProcessor()
     {
         /** @var Processor $parent */
         $mockParent = $parent = $this->getMockBuilder(Processor::class)->disableOriginalConstructor()->getMock();
@@ -52,7 +52,45 @@ class ArrayProcessorTest extends TestCase
     /**
      * @test
      */
-    public function dehydrateWillAssembleOutputArray()
+    public function hydrateWillReturnDefaultWhenValueIsNull()
+    {
+        $processor = new ArrayProcessor(new ArraySchema((object)['default' => [1, 2, 3]], new AnySchema()));
+
+        /** @var Processor $parent */
+        $mockParent = $parent = $this->getMockBuilder(Processor::class)->disableOriginalConstructor()->getMock();
+        $processor->setItemsProcessor($parent);
+
+        $mockParent
+            ->expects($this->exactly(3))
+            ->method('hydrate')
+            ->withConsecutive([1], [2], [3])
+            ->willReturnOnConsecutiveCalls('three', 'two', 'one');
+
+        $actual = $processor->hydrate(null);
+
+        $this->assertSame(['three', 'two', 'one'], $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function hydrateWillReturnNullWhenValueIsNullAndNoDefault()
+    {
+        /** @var Processor $parent */
+        $mockParent = $parent = $this->getMockBuilder(Processor::class)->disableOriginalConstructor()->getMock();
+        $this->processor->setItemsProcessor($parent);
+
+        $mockParent
+            ->expects($this->never())
+            ->method('hydrate');
+
+        $this->assertNull($this->processor->hydrate(null));
+    }
+
+    /**
+     * @test
+     */
+    public function dehydrateWillWillDelegateToItemsProcessor()
     {
         /** @var Processor $parent */
         $mockParent = $parent = $this->getMockBuilder(Processor::class)->disableOriginalConstructor()->getMock();

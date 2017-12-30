@@ -19,7 +19,7 @@ class DateTimeProcessor extends ScalarProcessor
     /**
      * @var DateTimeSerializer
      */
-    private $dateTimeSerializer;
+    protected $dateTimeSerializer;
 
 
     public function __construct(ScalarSchema $schema, DateTimeSerializer $dateTimeSerializer)
