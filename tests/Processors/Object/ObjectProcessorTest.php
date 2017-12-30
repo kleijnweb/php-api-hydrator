@@ -16,6 +16,9 @@ use KleijnWeb\PhpApi\Hydrator\Processors\Processor;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 abstract class ObjectProcessorTest extends TestCase
 {
     /**

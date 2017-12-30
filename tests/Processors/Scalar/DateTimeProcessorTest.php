@@ -14,6 +14,9 @@ use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\DateTimeProcessor;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class DateTimeProcessorTest extends TestCase
 {
     /**

@@ -8,6 +8,9 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Object;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class ComplexTypePropertyProcessor extends ComplexTypeProcessor
 {
     /**
@@ -19,7 +22,6 @@ class ComplexTypePropertyProcessor extends ComplexTypeProcessor
         $object = unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->className), $this->className));
 
         foreach ($this->reflectionProperties as $name => $reflectionProperty) {
-
             if (isset($this->reflectionProperties[$name])) {
                 if (!property_exists($input, $name)) {
                     if (!isset($this->defaults[$name])) {

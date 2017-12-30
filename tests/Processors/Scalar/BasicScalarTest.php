@@ -12,6 +12,9 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\ScalarProcessor;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 abstract class BasicScalarTest extends TestCase
 {
     /**

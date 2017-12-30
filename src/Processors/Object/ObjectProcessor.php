@@ -13,6 +13,9 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Processor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 abstract class ObjectProcessor extends Processor
 {
     /**

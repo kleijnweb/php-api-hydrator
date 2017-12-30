@@ -11,6 +11,9 @@ namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Scalar;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\NullProcessor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class NullProcessorTest extends BasicScalarTest
 {
     protected function setUp()

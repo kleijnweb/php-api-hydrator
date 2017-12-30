@@ -8,9 +8,11 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors;
 
-
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ArraySchema;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class ArrayProcessor extends Processor
 {
     /**

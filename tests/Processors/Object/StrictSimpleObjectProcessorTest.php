@@ -10,6 +10,9 @@ namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Object;
 
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\StrictSimpleObjectProcessor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class StrictSimpleObjectProcessorTest extends ObjectProcessorTest
 {
     /**

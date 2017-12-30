@@ -14,6 +14,9 @@ use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\IntegerProcessor;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class IntegerProcessorTest extends TestCase
 {
     /**

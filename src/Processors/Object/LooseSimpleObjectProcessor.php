@@ -8,11 +8,13 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Object;
 
-
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ObjectSchema;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\AnyProcessor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class LooseSimpleObjectProcessor extends ObjectProcessor
 {
     /**

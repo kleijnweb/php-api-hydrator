@@ -11,6 +11,9 @@ namespace KleijnWeb\PhpApi\Hydrator\Tests\Processors\Scalar;
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Scalar\BoolProcessor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class BoolProcessorTest extends BasicScalarTest
 {
 

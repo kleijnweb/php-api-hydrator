@@ -16,6 +16,9 @@ use KleijnWeb\PhpApi\Hydrator\Tests\Types\Category;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Pet;
 use KleijnWeb\PhpApi\Hydrator\Tests\Types\Tag;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class ComplexTypePropertyProcessorTest extends ObjectProcessorTest
 {
     /**

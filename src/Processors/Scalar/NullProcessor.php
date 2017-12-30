@@ -8,6 +8,9 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Scalar;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class NullProcessor extends ScalarProcessor
 {
     /**

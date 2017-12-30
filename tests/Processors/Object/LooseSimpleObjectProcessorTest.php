@@ -16,6 +16,9 @@ use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Processors\AnyProcessor;
 use KleijnWeb\PhpApi\Hydrator\Processors\Object\LooseSimpleObjectProcessor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class LooseSimpleObjectProcessorTest extends ObjectProcessorTest
 {
     /**

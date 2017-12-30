@@ -13,6 +13,9 @@ use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Processors\AnyProcessor;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class AnyProcessorTest extends TestCase
 {
     /**

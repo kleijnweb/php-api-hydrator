@@ -10,6 +10,9 @@ namespace KleijnWeb\PhpApi\Hydrator;
 
 use KleijnWeb\PhpApi\Hydrator\Exception\ClassNotFoundException;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class ClassNameResolver
 {
     /**
@@ -48,8 +51,10 @@ class ClassNameResolver
 
             throw new ClassNotFoundException(
                 sprintf(
-                    "Did not find type '%s' in namespace(s) '%s'.", $typeName,
-                    implode(', ', $this->resourceNamespaces))
+                    "Did not find type '%s' in namespace(s) '%s'.",
+                    $typeName,
+                    implode(', ', $this->resourceNamespaces)
+                )
             );
         }
 

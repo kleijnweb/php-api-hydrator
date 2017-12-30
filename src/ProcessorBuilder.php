@@ -149,7 +149,6 @@ class ProcessorBuilder
                     break;
                 default:
                     $hydrator = new $className($schema);
-
             }
             $this->hydrators[$className][$schemaHash] = $hydrator;
         }

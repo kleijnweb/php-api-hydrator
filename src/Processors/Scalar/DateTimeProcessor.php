@@ -8,10 +8,12 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Scalar;
 
-
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class DateTimeProcessor extends ScalarProcessor
 {
     /**

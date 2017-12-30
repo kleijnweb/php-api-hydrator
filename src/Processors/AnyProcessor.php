@@ -14,6 +14,9 @@ use KleijnWeb\PhpApi\Descriptions\Description\Schema\Schema;
 use KleijnWeb\PhpApi\Hydrator\DateTimeSerializer;
 use KleijnWeb\PhpApi\Hydrator\Exception\UnsupportedException;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 class AnyProcessor extends Processor
 {
     /**

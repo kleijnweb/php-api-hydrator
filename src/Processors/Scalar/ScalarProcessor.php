@@ -8,10 +8,12 @@
 
 namespace KleijnWeb\PhpApi\Hydrator\Processors\Scalar;
 
-
 use KleijnWeb\PhpApi\Descriptions\Description\Schema\ScalarSchema;
 use KleijnWeb\PhpApi\Hydrator\Processors\Processor;
 
+/**
+ * @author John Kleijn <john@kleijnweb.nl>
+ */
 abstract class ScalarProcessor extends Processor
 {
     public function __construct(ScalarSchema $schema)
